@@ -1,0 +1,9 @@
+{
+  "name": "salesspark-scripts",
+  "version": "1.0.0",
+  "description": "Scripts for SalesSpark",
+  "type": "module",
+  "main": "index.js",
+  "author": "",
+  "license": "ISC"
+}

@@ -1,0 +1,210 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --ring: 215 20.2% 65.1%;
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 85.7% 97.3%;
+
+    --ring: 217.2 32.6% 17.5%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Application specific styles */
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Pipeline density settings */
+.comfortable .kanban-column {
+  width: 220px;
+}
+
+.compact .kanban-column {
+  width: 190px;
+}
+
+.condensed .kanban-column {
+  width: 160px;
+}
+
+/* Sidebar states */
+.sidebar {
+  width: 240px;
+  transition: width 0.3s ease;
+  position: fixed;
+  height: 100vh;
+  z-index: 50;
+}
+
+.sidebar.collapsed {
+  width: 60px;
+}
+
+.main-content {
+  margin-left: 240px;
+  transition: margin-left 0.3s ease;
+  width: calc(100% - 240px);
+  max-width: 100%;
+}
+
+/* Only apply margin change on pipeline page */
+body[data-page="pipeline"] .sidebar.collapsed ~ .main-content {
+  margin-left: 60px;
+  width: calc(100% - 60px);
+}
+
+/* Fix for sidebar icons in collapsed mode */
+.sidebar.collapsed .h-5.w-5 {
+  margin-right: 0;
+}
+
+/* Adjust column width when sidebar is collapsed */
+.sidebar-collapsed .kanban-column {
+  width: calc((100vw - 60px - 24px) / 6);
+  min-width: 160px;
+}
+
+.fallback-header {
+  padding: 2rem;
+  text-align: center;
+  background-color: #0052CC;
+  color: white;
+}
+
+.fallback-header h1 {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+/* For responsive layout */
+@media (max-width: 768px) {
+  .fallback-header h1 {
+    font-size: 1.8rem;
+  }
+}
+
+/* Dashboard styles */
+.card {
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.metric-card {
+  height: 160px;
+}
+
+.trend-up {
+  color: #10b981;
+}
+
+.trend-down {
+  color: #ef4444;
+}
+
+.progress-bar {
+  height: 8px;
+  border-radius: 4px;
+  background-color: #e5e7eb;
+}
+
+.progress-value {
+  height: 8px;
+  border-radius: 4px;
+}
+
+.mini-chart {
+  height: 40px;
+}
+
+.avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: #4b5563;
+}
+
+.leaderboard-row:hover {
+  background-color: #f3f4f6;
+}

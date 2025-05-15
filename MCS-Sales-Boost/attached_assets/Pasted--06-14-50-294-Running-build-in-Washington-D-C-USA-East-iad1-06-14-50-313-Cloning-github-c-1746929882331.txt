@@ -1,0 +1,277 @@
+[06:14:50.294] Running build in Washington, D.C., USA (East) – iad1
+[06:14:50.313] Cloning github.com/omniprez/MCS-Sales-Boost (Branch: main, Commit: 3142c6b)
+[06:14:50.321] Skipping build cache, deployment was triggered without cache.
+[06:14:50.838] Cloning completed: 524.000ms
+[06:14:51.213] Running "vercel build"
+[06:14:51.611] Vercel CLI 41.7.3
+[06:14:52.164] Installing dependencies...
+[06:14:54.809] npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+[06:14:55.195] npm warn deprecated npmlog@5.0.1: This package is no longer supported.
+[06:14:55.460] npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+[06:14:55.987] npm warn deprecated gauge@3.0.2: This package is no longer supported.
+[06:14:56.076] npm warn deprecated are-we-there-yet@2.0.0: This package is no longer supported.
+[06:14:56.917] npm warn deprecated @esbuild-kit/core-utils@3.3.2: Merged into tsx: https://tsx.is
+[06:14:56.958] npm warn deprecated @esbuild-kit/esm-loader@2.6.5: Merged into tsx: https://tsx.is
+[06:14:57.053] npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+[06:15:02.320] 
+[06:15:02.321] added 577 packages in 10s
+[06:15:02.322] 
+[06:15:02.322] 67 packages are looking for funding
+[06:15:02.323]   run `npm fund` for details
+[06:15:04.445] npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+[06:15:04.573] npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+[06:15:04.668] npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+[06:15:05.431] npm warn deprecated @humanwhocodes/object-schema@2.0.3: Use @eslint/object-schema instead
+[06:15:05.432] npm warn deprecated @humanwhocodes/config-array@0.13.0: Use @eslint/config-array instead
+[06:15:07.234] npm warn deprecated eslint@8.57.1: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+[06:15:07.910] 
+[06:15:07.911] added 343 packages, and audited 344 packages in 5s
+[06:15:07.912] 
+[06:15:07.912] 73 packages are looking for funding
+[06:15:07.913]   run `npm fund` for details
+[06:15:07.920] 
+[06:15:07.921] 2 moderate severity vulnerabilities
+[06:15:07.921] 
+[06:15:07.922] To address all issues, run:
+[06:15:07.922]   npm audit fix
+[06:15:07.922] 
+[06:15:07.923] Run `npm audit` for details.
+[06:15:08.054] 
+[06:15:08.054] > salesspark-client@0.1.0 build
+[06:15:08.054] > tsc && vite build
+[06:15:08.054] 
+[06:15:20.320] src/components/AdminRouteGuard.tsx(13,10): error TS6133: 'location' is declared but its value is never read.
+[06:15:20.320] src/components/Layout.tsx(21,20): error TS6133: 'setLocation' is declared but its value is never read.
+[06:15:20.321] src/components/Layout.tsx(49,9): error TS6133: 'toggleSidebar' is declared but its value is never read.
+[06:15:20.321] src/components/LayoutFixed.tsx(10,3): error TS6133: 'TrophyIcon' is declared but its value is never read.
+[06:15:20.322] src/components/LayoutFixed.tsx(11,3): error TS6133: 'GiftIcon' is declared but its value is never read.
+[06:15:20.322] src/components/LayoutFixed.tsx(13,3): error TS6133: 'FileTextIcon' is declared but its value is never read.
+[06:15:20.322] src/components/LayoutFixed.tsx(14,3): error TS6133: 'ClipboardListIcon' is declared but its value is never read.
+[06:15:20.323] src/components/LayoutFixed.tsx(37,9): error TS6133: 'userData' is declared but its value is never read.
+[06:15:20.323] src/components/LayoutFixed2.tsx(10,3): error TS6133: 'TrophyIcon' is declared but its value is never read.
+[06:15:20.324] src/components/LayoutFixed2.tsx(11,3): error TS6133: 'GiftIcon' is declared but its value is never read.
+[06:15:20.325] src/components/LayoutFixed2.tsx(13,3): error TS6133: 'FileTextIcon' is declared but its value is never read.
+[06:15:20.325] src/components/LayoutFixed2.tsx(14,3): error TS6133: 'ClipboardListIcon' is declared but its value is never read.
+[06:15:20.325] src/components/LayoutFixed2.tsx(29,20): error TS6133: 'setLocation' is declared but its value is never read.
+[06:15:20.325] src/components/LayoutFixed2.tsx(37,9): error TS6198: All destructured elements are unused.
+[06:15:20.326] src/components/LayoutFixed2.tsx(40,5): error TS2769: No overload matches this call.
+[06:15:20.326]   Overload 1 of 3, '(options: DefinedInitialDataOptions<unknown, Error, unknown, string[]>, queryClient?: QueryClient | undefined): DefinedUseQueryResult<unknown, Error>', gave the following error.
+[06:15:20.326]     Object literal may only specify known properties, and 'onSuccess' does not exist in type 'DefinedInitialDataOptions<unknown, Error, unknown, string[]>'.
+[06:15:20.327]   Overload 2 of 3, '(options: UndefinedInitialDataOptions<unknown, Error, unknown, string[]>, queryClient?: QueryClient | undefined): UseQueryResult<unknown, Error>', gave the following error.
+[06:15:20.327]     Object literal may only specify known properties, and 'onSuccess' does not exist in type 'UndefinedInitialDataOptions<unknown, Error, unknown, string[]>'.
+[06:15:20.328]   Overload 3 of 3, '(options: UseQueryOptions<unknown, Error, unknown, string[]>, queryClient?: QueryClient | undefined): UseQueryResult<unknown, Error>', gave the following error.
+[06:15:20.328]     Object literal may only specify known properties, and 'onSuccess' does not exist in type 'UseQueryOptions<unknown, Error, unknown, string[]>'.
+[06:15:20.329] src/components/LayoutFixed2.tsx(40,17): error TS7006: Parameter 'data' implicitly has an 'any' type.
+[06:15:20.329] src/components/LayoutFixed2.tsx(49,15): error TS7006: Parameter 'error' implicitly has an 'any' type.
+[06:15:20.329] src/components/LayoutFixed2.tsx(57,51): error TS2339: Property 'authenticated' does not exist on type 'User'.
+[06:15:20.330] src/components/LayoutFixed2.tsx(58,42): error TS2339: Property 'user' does not exist on type 'User'.
+[06:15:20.330] src/components/LayoutFixed2.tsx(60,59): error TS2339: Property 'authenticated' does not exist on type 'User'.
+[06:15:20.330] src/components/LayoutFixed2.tsx(60,84): error TS2339: Property 'user' does not exist on type 'User'.
+[06:15:20.330] src/components/LayoutFixed2.tsx(61,50): error TS2339: Property 'user' does not exist on type 'User'.
+[06:15:20.333] src/components/LayoutFixed2.tsx(61,113): error TS2339: Property 'user' does not exist on type 'User'.
+[06:15:20.333] src/components/Sidebar.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+[06:15:20.333] src/components/achievements/AchievementBadge.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+[06:15:20.333] src/components/achievements/AchievementGrid.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+[06:15:20.333] src/components/dashboard/AvgDealSizeCard.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+[06:15:20.333] src/components/dashboard/AvgDealSizeCard.tsx(3,16): error TS6133: 'CardContent' is declared but its value is never read.
+[06:15:20.333] src/components/dashboard/AvgDealSizeCard.tsx(5,1): error TS6192: All imports in import declaration are unused.
+[06:15:20.333] src/components/dashboard/AvgDealSizeCard.tsx(46,24): error TS6133: 'distribution' is declared but its value is never read.
+[06:15:20.333] src/components/dashboard/ConversionRateCard.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+[06:15:20.333] src/components/dashboard/ConversionRateCard.tsx(3,16): error TS6133: 'CardContent' is declared but its value is never read.
+[06:15:20.333] src/components/dashboard/ConversionRateCard.tsx(5,1): error TS6192: All imports in import declaration are unused.
+[06:15:20.334] src/components/dashboard/ConversionRateCard.tsx(45,27): error TS6133: 'stageCounts' is declared but its value is never read.
+[06:15:20.334] src/components/dashboard/GrossProfitCard.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+[06:15:20.334] src/components/dashboard/GrossProfitCard.tsx(3,16): error TS6133: 'CardContent' is declared but its value is never read.
+[06:15:20.334] src/components/dashboard/GrossProfitCard.tsx(5,1): error TS6192: All imports in import declaration are unused.
+[06:15:20.334] src/components/dashboard/GrossProfitCard.tsx(81,62): error TS7006: Parameter 'm' implicitly has an 'any' type.
+[06:15:20.335] src/components/dashboard/GrossProfitCard.tsx(82,52): error TS7006: Parameter 'month' implicitly has an 'any' type.
+[06:15:20.336] src/components/dashboard/GrossProfitCard.tsx(82,59): error TS7006: Parameter 'index' implicitly has an 'any' type.
+[06:15:20.336] src/components/dashboard/LeaderboardWidget.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+[06:15:20.336] src/components/dashboard/LeaderboardWidget.tsx(4,1): error TS6192: All imports in import declaration are unused.
+[06:15:20.336] src/components/dashboard/PerformanceOverview.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+[06:15:20.337] src/components/dashboard/PerformanceOverview.tsx(3,1): error TS6192: All imports in import declaration are unused.
+[06:15:20.337] src/components/dashboard/PerformanceOverview.tsx(5,27): error TS6133: 'BarChart' is declared but its value is never read.
+[06:15:20.337] src/components/dashboard/PerformanceOverview.tsx(5,37): error TS6133: 'Bar' is declared but its value is never read.
+[06:15:20.337] src/components/dashboard/PipelineCard.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+[06:15:20.337] src/components/dashboard/PipelineCard.tsx(3,16): error TS6133: 'CardContent' is declared but its value is never read.
+[06:15:20.337] src/components/dashboard/PipelineCard.tsx(5,1): error TS6192: All imports in import declaration are unused.
+[06:15:20.338] src/components/dashboard/PipelineCard.tsx(73,35): error TS7006: Parameter 'stage' implicitly has an 'any' type.
+[06:15:20.338] src/components/dashboard/PipelineCard.tsx(73,42): error TS7006: Parameter 'index' implicitly has an 'any' type.
+[06:15:20.338] src/components/dashboard/PipelineDistributionChart.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+[06:15:20.338] src/components/dashboard/PipelineDistributionChart.tsx(125,33): error TS6133: 'entry' is declared but its value is never read.
+[06:15:20.344] src/components/dashboard/QuotaCompletionCard.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+[06:15:20.344] src/components/dashboard/QuotaCompletionCard.tsx(3,16): error TS6133: 'CardContent' is declared but its value is never read.
+[06:15:20.344] src/components/dashboard/RecentActivities.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+[06:15:20.344] src/components/dashboard/RecentActivities.tsx(3,1): error TS6192: All imports in import declaration are unused.
+[06:15:20.345] src/components/dashboard/RecentActivities.tsx(120,101): error TS6133: 'index' is declared but its value is never read.
+[06:15:20.345] src/components/dashboard/RevenueCard.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+[06:15:20.345] src/components/dashboard/RevenueCard.tsx(3,16): error TS6133: 'CardContent' is declared but its value is never read.
+[06:15:20.345] src/components/dashboard/RevenueCard.tsx(5,1): error TS6192: All imports in import declaration are unused.
+[06:15:20.345] src/components/dashboard/RevenueCard.tsx(81,67): error TS7006: Parameter 'm' implicitly has an 'any' type.
+[06:15:20.345] src/components/dashboard/RevenueCard.tsx(82,52): error TS7006: Parameter 'month' implicitly has an 'any' type.
+[06:15:20.346] src/components/dashboard/RevenueCard.tsx(82,59): error TS7006: Parameter 'index' implicitly has an 'any' type.
+[06:15:20.346] src/components/dashboard/RevenueTrendChart.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+[06:15:20.346] src/components/dashboard/RevenueTrendChart.tsx(5,86): error TS6133: 'Legend' is declared but its value is never read.
+[06:15:20.346] src/components/dashboard/SalesLeaderCard.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+[06:15:20.346] src/components/dashboard/SalesLeaderCard.tsx(3,16): error TS6133: 'CardContent' is declared but its value is never read.
+[06:15:20.346] src/components/dashboard/SalesLeaderCard.tsx(5,1): error TS6133: 'Award' is declared but its value is never read.
+[06:15:20.347] src/components/dashboard/SalesLeaderCard.tsx(53,47): error TS7006: Parameter 'n' implicitly has an 'any' type.
+[06:15:20.347] src/components/dashboard/SalesLeaderboard.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+[06:15:20.347] src/components/dashboard/SalesLeaderboard.tsx(16,19): error TS6133: 'setAnimate' is declared but its value is never read.
+[06:15:20.347] src/components/dashboard/SalesLeaderboard.tsx(90,63): error TS2322: Type '{ className: string; title: string; }' is not assignable to type 'IntrinsicAttributes & LucideProps'.
+[06:15:20.347]   Property 'title' does not exist on type 'IntrinsicAttributes & LucideProps'.
+[06:15:20.348] src/components/dashboard/SalesLeaderboard.tsx(92,60): error TS2322: Type '{ className: string; title: string; }' is not assignable to type 'IntrinsicAttributes & LucideProps'.
+[06:15:20.348]   Property 'title' does not exist on type 'IntrinsicAttributes & LucideProps'.
+[06:15:20.348] src/components/dashboard/SalesLeaderboard.tsx(94,61): error TS2322: Type '{ className: string; title: string; }' is not assignable to type 'IntrinsicAttributes & LucideProps'.
+[06:15:20.348]   Property 'title' does not exist on type 'IntrinsicAttributes & LucideProps'.
+[06:15:20.349] src/components/dashboard/SalesPipelineWidget.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+[06:15:20.349] src/components/dashboard/SalesPipelineWidget.tsx(4,1): error TS6192: All imports in import declaration are unused.
+[06:15:20.349] src/components/dashboard/SalesPipelineWidget.tsx(50,10): error TS6133: 'activeFilter' is declared but its value is never read.
+[06:15:20.349] src/components/dashboard/SalesPipelineWidget.tsx(50,24): error TS6133: 'setActiveFilter' is declared but its value is never read.
+[06:15:20.350] src/components/dashboard/SalesPipelineWidget.tsx(51,10): error TS6133: 'location' is declared but its value is never read.
+[06:15:20.350] src/components/dashboard/SalesPipelineWidget.tsx(67,9): error TS6198: All destructured elements are unused.
+[06:15:20.350] src/components/dashboard/SalesPipelineWidget.tsx(117,9): error TS6133: 'stageData' is declared but its value is never read.
+[06:15:20.350] src/components/dashboard/SalesPipelineWidget.tsx(183,77): error TS6133: 'index' is declared but its value is never read.
+[06:15:20.351] src/components/dashboard/SalesPipelineWidget.tsx(235,7): error TS6133: 'PipelineStage' is declared but its value is never read.
+[06:15:20.351] src/components/dashboard/WinRateCard.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+[06:15:20.351] src/components/dashboard/WinRateCard.tsx(3,16): error TS6133: 'CardContent' is declared but its value is never read.
+[06:15:20.351] src/components/dashboard/WinRateCard.tsx(5,1): error TS6192: All imports in import declaration are unused.
+[06:15:20.352] src/components/dashboard/WinRateCard.tsx(45,41): error TS6133: 'totalClosed' is declared but its value is never read.
+[06:15:20.352] src/components/deals/DealEditDialog.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+[06:15:20.352] src/components/deals/DealStageTransition.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+[06:15:20.352] src/components/deals/DealStageTransition.tsx(4,34): error TS6133: 'Copy' is declared but its value is never read.
+[06:15:20.353] src/components/deals/NewDealDialog.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+[06:15:20.353] src/components/deals/NewDealDialog.tsx(1,28): error TS6133: 'useState' is declared but its value is never read.
+[06:15:20.353] src/components/leaderboard/AchievementCard.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+[06:15:20.353] src/components/leaderboard/LeaderboardList.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+[06:15:20.354] src/components/pipeline/CollapsibleDealCard.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+[06:15:20.354] src/components/pipeline/CollapsibleDealCard.tsx(43,9): error TS6133: 'getStageColor' is declared but its value is never read.
+[06:15:20.354] src/components/pipeline/CollapsibleDealCard.tsx(58,9): error TS6133: 'formatStage' is declared but its value is never read.
+[06:15:20.354] src/components/pipeline/DealCard.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+[06:15:20.354] src/components/pipeline/DealCard.tsx(5,10): error TS6133: 'useMutation' is declared but its value is never read.
+[06:15:20.355] src/components/pipeline/DealCard.tsx(6,1): error TS6133: 'Button' is declared but its value is never read.
+[06:15:20.355] src/components/pipeline/DealCard.tsx(7,10): error TS6133: 'Copy' is declared but its value is never read.
+[06:15:20.355] src/components/pipeline/DealCard.tsx(8,1): error TS6133: 'toast' is declared but its value is never read.
+[06:15:20.355] src/components/pipeline/DealCard.tsx(39,9): error TS6133: 'queryClient' is declared but its value is never read.
+[06:15:20.356] src/components/pipeline/DealListView.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+[06:15:20.356] src/components/pipeline/DealListView.tsx(1,27): error TS6133: 'useEffect' is declared but its value is never read.
+[06:15:20.356] src/components/pipeline/PipelineStageColumn.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+[06:15:20.356] src/components/team/NewTeamMemberDialog.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+[06:15:20.357] src/components/team/NewTeamMemberDialog.tsx(247,26): error TS18046: 'teams' is of type 'unknown'.
+[06:15:20.357] src/components/team/TeamCard.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+[06:15:20.357] src/components/team/TeamCard.tsx(13,21): error TS6133: 'id' is declared but its value is never read.
+[06:15:20.357] src/components/team/TeamMemberCard.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+[06:15:20.358] src/components/team/TeamMemberCard.tsx(14,58): error TS6133: 'teamId' is declared but its value is never read.
+[06:15:20.359] src/components/test-currency.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+[06:15:20.359] src/components/ui/aspect-ratio.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+[06:15:20.359] src/components/ui/calendar.tsx(55,20): error TS6133: 'props' is declared but its value is never read.
+[06:15:20.360] src/components/ui/calendar.tsx(56,21): error TS6133: 'props' is declared but its value is never read.
+[06:15:20.360] src/components/ui/collapsible.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+[06:15:20.360] src/components/ui/toaster.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+[06:15:20.360] src/contexts/AuthContext.tsx(1,67): error TS6133: 'useEffect' is declared but its value is never read.
+[06:15:20.361] src/lib/api-mock.ts(59,20): error TS6133: 'id' is declared but its value is never read.
+[06:15:20.361] src/lib/utils.ts(35,11): error TS6133: 'maximumFractionDigits' is declared but its value is never read.
+[06:15:20.361] src/pages/Achievements.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+[06:15:20.361] src/pages/Achievements.tsx(10,1): error TS6133: 'Separator' is declared but its value is never read.
+[06:15:20.362] src/pages/Achievements.tsx(11,16): error TS6133: 'TabsContent' is declared but its value is never read.
+[06:15:20.362] src/pages/AdminDashboard.tsx(11,8): error TS2307: Cannot find module '@shared/schema' or its corresponding type declarations.
+[06:15:20.362] src/pages/AdminDashboard.tsx(15,93): error TS6133: 'DialogTrigger' is declared but its value is never read.
+[06:15:20.362] src/pages/AdminDashboard.tsx(19,39): error TS6133: 'ArrowUpDown' is declared but its value is never read.
+[06:15:20.363] src/pages/AdminDashboard.tsx(19,52): error TS6133: 'FileSpreadsheet' is declared but its value is never read.
+[06:15:20.363] src/pages/AdminDashboard.tsx(19,69): error TS6133: 'Upload' is declared but its value is never read.
+[06:15:20.363] src/pages/AdminDashboard.tsx(19,77): error TS6133: 'CheckCircle2' is declared but its value is never read.
+[06:15:20.363] src/pages/AdminDashboard.tsx(19,91): error TS6133: 'RefreshCw' is declared but its value is never read.
+[06:15:20.364] src/pages/AdminDashboard.tsx(19,102): error TS6133: 'UserPlus' is declared but its value is never read.
+[06:15:20.364] src/pages/AdminDashboard.tsx(19,112): error TS6133: 'Link' is declared but its value is never read.
+[06:15:20.364] src/pages/AdminDashboard.tsx(28,9): error TS6133: 'fixDealStages' is declared but its value is never read.
+[06:15:20.364] src/pages/AdminDashboard.tsx(65,9): error TS6133: 'addSampleDeals' is declared but its value is never read.
+[06:15:20.365] src/pages/AdminDashboard.tsx(107,9): error TS6133: 'resetPipelineStages' is declared but its value is never read.
+[06:15:20.365] src/pages/AdminDashboard.tsx(147,9): error TS6133: 'addSampleSalesRep' is declared but its value is never read.
+[06:15:20.365] src/pages/AdminDashboard.tsx(185,9): error TS6133: 'assignDealsToReps' is declared but its value is never read.
+[06:15:20.365] src/pages/AdminDashboard.tsx(222,9): error TS6133: 'cleanupTestData' is declared but its value is never read.
+[06:15:20.366] src/pages/CurrencyTest.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+[06:15:20.366] src/pages/Dashboard.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+[06:15:20.366] src/pages/Dashboard.tsx(2,10): error TS6133: 'useQuery' is declared but its value is never read.
+[06:15:20.366] src/pages/Dashboard.tsx(3,16): error TS6133: 'CardContent' is declared but its value is never read.
+[06:15:20.367] src/pages/Dashboard.tsx(3,29): error TS6133: 'CardHeader' is declared but its value is never read.
+[06:15:20.367] src/pages/Dashboard.tsx(3,41): error TS6133: 'CardTitle' is declared but its value is never read.
+[06:15:20.367] src/pages/Dashboard.tsx(5,1): error TS6192: All imports in import declaration are unused.
+[06:15:20.367] src/pages/Dashboard.tsx(6,1): error TS6133: 'Button' is declared but its value is never read.
+[06:15:20.368] src/pages/Dashboard.tsx(7,1): error TS6133: 'formatCurrency' is declared but its value is never read.
+[06:15:20.368] src/pages/Debug.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+[06:15:20.368] src/pages/Leaderboard.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+[06:15:20.368] src/pages/Login.tsx(14,18): error TS6133: 'isLoading' is declared but its value is never read.
+[06:15:20.369] src/pages/Login.tsx(55,13): error TS6133: 'user' is declared but its value is never read.
+[06:15:20.369] src/pages/Pipeline.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+[06:15:20.369] src/pages/RewardsAndIncentives.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+[06:15:20.369] src/pages/RewardsAndIncentives.tsx(22,1): error TS6133: 'Separator' is declared but its value is never read.
+[06:15:20.369] src/pages/RewardsAndIncentives.tsx(128,9): error TS6133: 'handleQueryError' is declared but its value is never read.
+[06:15:20.370] src/pages/RewardsAndIncentives.tsx(150,13): error TS6133: 'response' is declared but its value is never read.
+[06:15:20.370] src/pages/RewardsAndIncentives.tsx(150,41): error TS2558: Expected 0 type arguments, but got 1.
+[06:15:20.370] src/pages/RewardsAndIncentives.tsx(173,13): error TS6133: 'response' is declared but its value is never read.
+[06:15:20.370] src/pages/RewardsAndIncentives.tsx(173,41): error TS2558: Expected 0 type arguments, but got 1.
+[06:15:20.371] src/pages/RewardsAndIncentives.tsx(311,18): error TS18048: 'data.userRecentTransactions.length' is possibly 'undefined'.
+[06:15:20.371] src/pages/RewardsAndIncentives.tsx(312,19): error TS18048: 'data' is possibly 'undefined'.
+[06:15:20.371] src/pages/RewardsAndIncentives.tsx(358,18): error TS18048: 'data.activeChallenges.length' is possibly 'undefined'.
+[06:15:20.371] src/pages/RewardsAndIncentives.tsx(359,19): error TS18048: 'data' is possibly 'undefined'.
+[06:15:20.372] src/pages/RewardsAndIncentives.tsx(403,20): error TS18048: 'data.availableRewards.length' is possibly 'undefined'.
+[06:15:20.372] src/pages/RewardsAndIncentives.tsx(404,21): error TS18048: 'data' is possibly 'undefined'.
+[06:15:20.372] src/pages/RewardsAndIncentives.tsx(434,39): error TS18048: 'data' is possibly 'undefined'.
+[06:15:20.372] src/pages/RewardsAndIncentives.tsx(437,30): error TS18048: 'data' is possibly 'undefined'.
+[06:15:20.373] src/pages/RewardsAndIncentives.tsx(457,18): error TS18048: 'data.userRewards.length' is possibly 'undefined'.
+[06:15:20.373] src/pages/RewardsAndIncentives.tsx(459,22): error TS18048: 'data' is possibly 'undefined'.
+[06:15:20.373] src/pages/RewardsAndIncentives.tsx(460,38): error TS18048: 'data' is possibly 'undefined'.
+[06:15:20.373] src/pages/RewardsAndIncentives.tsx(504,18): error TS18048: 'data.activeChallenges.length' is possibly 'undefined'.
+[06:15:20.374] src/pages/RewardsAndIncentives.tsx(505,19): error TS18048: 'data' is possibly 'undefined'.
+[06:15:20.374] src/pages/RewardsAndIncentives.tsx(507,45): error TS18048: 'data' is possibly 'undefined'.
+[06:15:20.374] src/pages/RewardsAndIncentives.tsx(510,43): error TS18048: 'data' is possibly 'undefined'.
+[06:15:20.374] src/pages/RewardsAndIncentives.tsx(563,36): error TS18048: 'userChallenge.participant.progress.currentSales' is possibly 'undefined'.
+[06:15:20.375] src/pages/RewardsAndIncentives.tsx(578,32): error TS18048: 'userChallenge' is possibly 'undefined'.
+[06:15:20.378] src/pages/RewardsAndIncentives.tsx(600,16): error TS18048: 'data.userChallenges.length' is possibly 'undefined'.
+[06:15:20.378] src/pages/RewardsAndIncentives.tsx(602,20): error TS18048: 'data' is possibly 'undefined'.
+[06:15:20.378] src/pages/RewardsAndIncentives.tsx(661,18): error TS18048: 'data.userRecentTransactions.length' is possibly 'undefined'.
+[06:15:20.378] src/pages/RewardsAndIncentives.tsx(662,19): error TS18048: 'data' is possibly 'undefined'.
+[06:15:20.378] src/pages/SalesPipeline.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+[06:15:20.378] src/pages/SalesPipeline.tsx(6,1): error TS6192: All imports in import declaration are unused.
+[06:15:20.378] src/pages/SalesPipeline.tsx(21,28): error TS6133: 'LayoutDashboard' is declared but its value is never read.
+[06:15:20.378] src/pages/SalesPipeline.tsx(21,45): error TS6133: 'Users' is declared but its value is never read.
+[06:15:20.379] src/pages/SalesPipeline.tsx(21,52): error TS6133: 'BarChart' is declared but its value is never read.
+[06:15:20.379] src/pages/SalesPipeline.tsx(31,9): error TS6133: 'density' is declared but its value is never read.
+[06:15:20.379] src/pages/SalesPipeline.tsx(36,9): error TS6133: 'getPipelineData' is declared but its value is never read.
+[06:15:20.379] src/pages/SalesPipeline.tsx(36,11): error TS2339: Property 'getPipelineData' does not exist on type 'PipelineContextType'.
+[06:15:20.379] src/pages/Settings.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+[06:15:20.379] src/pages/Team.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+[06:15:20.379] src/pages/TeamManagement.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+[06:15:20.379] src/pages/TeamManagement.tsx(11,3): error TS6133: 'TabsContent' is declared but its value is never read.
+[06:15:20.379] src/pages/TeamManagement.tsx(66,13): error TS2339: Property 'filter' does not exist on type '{}'.
+[06:15:20.379] src/pages/TeamPipeline.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+[06:15:20.379] src/pages/TeamPipeline.tsx(11,1): error TS6192: All imports in import declaration are unused.
+[06:15:20.379] src/pages/TeamPipeline.tsx(16,57): error TS6133: 'PieChart' is declared but its value is never read.
+[06:15:20.379] src/pages/TeamPipeline.tsx(17,1): error TS6133: 'apiRequest' is declared but its value is never read.
+[06:15:20.379] src/pages/TeamPipeline.tsx(18,10): error TS2305: Module '"../lib/auth"' has no exported member 'getCurrentUser'.
+[06:15:20.379] src/pages/TeamPipeline.tsx(19,42): error TS2307: Cannot find module '@shared/schema' or its corresponding type declarations.
+[06:15:20.379] src/pages/TeamPipeline.tsx(63,10): error TS6133: 'currentUserRole' is declared but its value is never read.
+[06:15:20.379] src/pages/TeamPipeline.tsx(192,9): error TS6133: 'teamTotalValue' is declared but its value is never read.
+[06:15:20.379] src/pages/TestPage.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+[06:15:20.380] src/pages/UserProfile.tsx(311,34): error TS6133: 'field' is declared but its value is never read.
+[06:15:20.380] src/pages/WeeklyPipeline.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+[06:15:20.380] src/pages/WeeklyPipeline.tsx(14,86): error TS6133: 'DialogTrigger' is declared but its value is never read.
+[06:15:20.380] src/pages/WeeklyPipeline.tsx(16,1): error TS6192: All imports in import declaration are unused.
+[06:15:20.380] src/pages/WeeklyPipeline.tsx(21,1): error TS6133: 'Separator' is declared but its value is never read.
+[06:15:20.380] src/pages/WeeklyPipeline.tsx(23,22): error TS6133: 'ArrowRight' is declared but its value is never read.
+[06:15:20.380] src/pages/WeeklyPipeline.tsx(23,40): error TS6133: 'Mail' is declared but its value is never read.
+[06:15:20.380] src/pages/WeeklyPipeline.tsx(23,46): error TS6133: 'Phone' is declared but its value is never read.
+[06:15:20.380] src/pages/WeeklyPipeline.tsx(23,53): error TS6133: 'Activity' is declared but its value is never read.
+[06:15:20.381] src/pages/WeeklyPipeline.tsx(23,63): error TS6133: 'Target' is declared but its value is never read.
+[06:15:20.381] src/pages/WeeklyPipeline.tsx(23,71): error TS6133: 'ArrowUp' is declared but its value is never read.
+[06:15:20.381] src/pages/WeeklyPipeline.tsx(23,80): error TS6133: 'ArrowDown' is declared but its value is never read.
+[06:15:20.381] src/pages/WeeklyPipeline.tsx(27,10): error TS2305: Module '"../lib/auth"' has no exported member 'getCurrentUser'.
+[06:15:20.381] src/pages/WeeklyPipeline.tsx(31,73): error TS2305: Module '"../shared/schema"' has no exported member 'NewDeal'.
+[06:15:20.381] src/pages/WeeklyPipeline.tsx(31,73): error TS6133: 'NewDeal' is declared but its value is never read.
+[06:15:20.381] src/pages/WeeklyPipeline.tsx(33,1): error TS6133: 'toast' is declared but its value is never read.
+[06:15:20.381] src/pages/WeeklyPipeline.tsx(33,10): error TS2724: '"../components/ui/toast"' has no exported member named 'toast'. Did you mean 'Toast'?
+[06:15:20.382] src/pages/admin.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+[06:15:20.382] src/pages/not-found.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+[06:15:20.398] Error: Command "cd client && npm install && npm run build" exited with 2
+[06:15:20.711] 
+[06:15:23.776] Exiting build container

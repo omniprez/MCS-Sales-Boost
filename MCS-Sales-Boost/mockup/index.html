@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SalesSpark - Sales Management Platform</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <h1>SalesSpark</h1>
+            </div>
+            <nav class="nav-menu">
+                <ul>
+                    <li class="active" data-page="dashboard">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Dashboard</span>
+                    </li>
+                    <li data-page="deals">
+                        <i class="fas fa-handshake"></i>
+                        <span>Deals</span>
+                    </li>
+                    <li data-page="pipeline">
+                        <i class="fas fa-project-diagram"></i>
+                        <span>Sales Pipeline</span>
+                    </li>
+                    <li data-page="admin">
+                        <i class="fas fa-cog"></i>
+                        <span>Admin</span>
+                    </li>
+                </ul>
+            </nav>
+            <div class="user-profile">
+                <img src="images/avatar.png" alt="User Avatar">
+                <span>John Doe</span>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Dashboard Page -->
+            <section id="dashboard" class="page active">
+                <div class="page-header">
+                    <h2>Dashboard</h2>
+                    <div class="product-buttons">
+                        <button class="active" data-category="all">All Products</button>
+                        <button data-category="broadband">Broadband</button>
+                        <button data-category="voice">Voice</button>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <!-- Quota Completion Card -->
+                    <div class="stat-card">
+                        <h3>Quota Completion</h3>
+                        <div class="stat-content">
+                            <div class="circular-progress">
+                                <svg viewBox="0 0 36 36">
+                                    <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                        fill="none" stroke="#DFE1E6" stroke-width="3"/>
+                                    <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                        fill="none" stroke="#36B37E" stroke-width="3" stroke-dasharray="75, 100"/>
+                                </svg>
+                                <span>75%</span>
+                            </div>
+                            <div class="stat-details">
+                                <p class="stat-value">₹752K</p>
+                                <p class="stat-label">of ₹1M target</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Win Rate Card -->
+                    <div class="stat-card">
+                        <h3>Win Rate</h3>
+                        <div class="stat-content">
+                            <div class="circular-progress">
+                                <svg viewBox="0 0 36 36">
+                                    <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                        fill="none" stroke="#DFE1E6" stroke-width="3"/>
+                                    <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                        fill="none" stroke="#0052CC" stroke-width="3" stroke-dasharray="67, 100"/>
+                                </svg>
+                                <span>67%</span>
+                            </div>
+                            <div class="stat-details">
+                                <p class="stat-value">67</p>
+                                <p class="stat-label">of 108 deals</p>
+                                <p class="stat-trend positive">
+                                    <i class="fas fa-arrow-up"></i>
+                                    4.3% vs last quarter
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sales Chart -->
+                <div class="chart-container">
+                    <h3>Sales by Product Category</h3>
+                    <div class="chart-wrapper">
+                        <canvas id="salesChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Product Performance Table -->
+                <div class="table-container">
+                    <h3>Product Performance</h3>
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th data-sort="product">Product</th>
+                                    <th data-sort="revenue">Revenue</th>
+                                    <th data-sort="deals">Deals</th>
+                                    <th data-sort="gp">GP %</th>
+                                    <th data-sort="trend">Trend</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td data-product="Wireless">
+                                        <span class="product-indicator wireless"></span>
+                                        Wireless
+                                    </td>
+                                    <td data-revenue="450000">₹450,000</td>
+                                    <td data-deals="45">45</td>
+                                    <td data-gp="65">65%</td>
+                                    <td data-trend="5.2">
+                                        <span class="trend-badge positive">
+                                            <i class="fas fa-arrow-up"></i>
+                                            5.2%
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td data-product="Fiber">
+                                        <span class="product-indicator fiber"></span>
+                                        Fiber
+                                    </td>
+                                    <td data-revenue="302000">₹302,000</td>
+                                    <td data-deals="22">22</td>
+                                    <td data-gp="72">72%</td>
+                                    <td data-trend="3.8">
+                                        <span class="trend-badge positive">
+                                            <i class="fas fa-arrow-up"></i>
+                                            3.8%
+                                        </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Deals Page -->
+            <section id="deals" class="page">
+                <div class="page-header">
+                    <h2>Deals</h2>
+                    <button class="btn-primary" id="newDealBtn">
+                        <i class="fas fa-plus"></i>
+                        New Deal
+                    </button>
+                </div>
+
+                <div class="table-container">
+                    <div class="table-wrapper">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th data-sort="name">Deal Name</th>
+                                    <th data-sort="customer">Customer</th>
+                                    <th data-sort="mrc">MRC (₹)</th>
+                                    <th data-sort="nrc">NRC (₹)</th>
+                                    <th data-sort="tcv">TCV (₹)</th>
+                                    <th data-sort="length">Contract Length</th>
+                                    <th data-sort="stage">Stage</th>
+                                    <th data-sort="owner">Owner</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td data-name="Enterprise Cloud Migration">Enterprise Cloud Migration</td>
+                                    <td data-customer="ABC Corp">ABC Corp</td>
+                                    <td data-mrc="50000">₹50,000</td>
+                                    <td data-nrc="100000">₹1,00,000</td>
+                                    <td data-tcv="700000">₹7,00,000</td>
+                                    <td data-length="12">12 months</td>
+                                    <td data-stage="negotiation">
+                                        <span class="status-badge negotiation">Negotiation</span>
+                                    </td>
+                                    <td data-owner="John Doe">
+                                        <div class="user-avatar">
+                                            <span>JD</span>
+                                            John Doe
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <button class="btn-icon"><i class="fas fa-edit"></i></button>
+                                        <button class="btn-icon"><i class="fas fa-trash"></i></button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Admin Page -->
+            <section id="admin" class="page">
+                <div class="page-header">
+                    <h2>Admin Dashboard</h2>
+                </div>
+
+                <div class="admin-section">
+                    <h3>Bulk Upload Deals</h3>
+                    <div class="upload-container">
+                        <div class="upload-area">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p>Drag and drop your CSV file here or click to browse</p>
+                            <input type="file" id="dealFile" accept=".csv" class="hidden">
+                            <button class="btn-primary" id="uploadButton">Upload Deals</button>
+                        </div>
+                    </div>
+
+                    <div class="upload-info">
+                        <h4>Required Fields:</h4>
+                        <ul>
+                            <li>Customer Name</li>
+                            <li>MRC (₹)</li>
+                            <li>NRC (₹)</li>
+                            <li>Contract Length (months)</li>
+                            <li>Stage</li>
+                            <li>Category</li>
+                            <li>Owner</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="js/script.js"></script>
+</body>
+</html> 

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ISP Sales Platform - Test Page</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f5f5f5;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 20px;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    h1 {
+      color: #0052CC;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    
+    .test-card {
+      background-color: #f9f9f9;
+      border: 1px solid #e0e0e0;
+      padding: 15px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+    }
+    
+    button {
+      background-color: #0052CC;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 10px 15px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background-color 0.2s;
+    }
+    
+    button:hover {
+      background-color: #003d99;
+    }
+    
+    .result {
+      margin-top: 15px;
+      padding: 10px;
+      background-color: #f0f0f0;
+      border-radius: 4px;
+      font-family: monospace;
+      min-height: 20px;
+    }
+    
+    .success {
+      color: #36B37E;
+      font-weight: bold;
+    }
+    
+    .error {
+      color: #FF5630;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>ISP Sales Platform - Test Page</h1>
+    
+    <div class="test-card">
+      <h3>Test Server Connection</h3>
+      <p>Click the button below to test if the server is responding to API requests.</p>
+      <button id="testServerBtn">Test Server</button>
+      <div id="serverResult" class="result"></div>
+    </div>
+    
+    <div class="test-card">
+      <h3>Test Authentication</h3>
+      <p>Try to login with the admin account.</p>
+      <button id="testLoginBtn">Login as Admin</button>
+      <div id="loginResult" class="result"></div>
+    </div>
+    
+    <div class="test-card">
+      <h3>Check Authentication Status</h3>
+      <p>Check if you're currently authenticated.</p>
+      <button id="checkAuthBtn">Check Auth Status</button>
+      <div id="authResult" class="result"></div>
+    </div>
+    
+    <div class="test-card">
+      <h3>Test Logout</h3>
+      <p>Log out from the current session.</p>
+      <button id="logoutBtn">Logout</button>
+      <div id="logoutResult" class="result"></div>
+    </div>
+    
+    <div style="text-align: center; margin-top: 30px;">
+      <p>This is a static test page to verify core functionality without React.</p>
+    </div>
+  </div>
+  
+  <script>
+    // Test server connection
+    document.getElementById('testServerBtn').addEventListener('click', async () => {
+      const resultDiv = document.getElementById('serverResult');
+      resultDiv.innerHTML = 'Testing...';
+      
+      try {
+        const response = await fetch('/api/test');
+        const data = await response.json();
+        
+        if (response.ok) {
+          resultDiv.innerHTML = `<span class="success">Success!</span> Server responded: ${JSON.stringify(data)}`;
+        } else {
+          resultDiv.innerHTML = `<span class="error">Error:</span> ${response.status} ${response.statusText}`;
+        }
+      } catch (error) {
+        resultDiv.innerHTML = `<span class="error">Error:</span> ${error.message}`;
+      }
+    });
+    
+    // Test login
+    document.getElementById('testLoginBtn').addEventListener('click', async () => {
+      const resultDiv = document.getElementById('loginResult');
+      resultDiv.innerHTML = 'Logging in...';
+      
+      try {
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            username: 'admin',
+            password: 'password'
+          }),
+          credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
+          resultDiv.innerHTML = `<span class="success">Login successful!</span> User: ${JSON.stringify(data.user)}`;
+        } else {
+          resultDiv.innerHTML = `<span class="error">Login failed:</span> ${data.message || 'Unknown error'}`;
+        }
+      } catch (error) {
+        resultDiv.innerHTML = `<span class="error">Error:</span> ${error.message}`;
+      }
+    });
+    
+    // Check auth status
+    document.getElementById('checkAuthBtn').addEventListener('click', async () => {
+      const resultDiv = document.getElementById('authResult');
+      resultDiv.innerHTML = 'Checking...';
+      
+      try {
+        const response = await fetch('/api/auth/check', {
+          credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.authenticated) {
+          resultDiv.innerHTML = `<span class="success">Authenticated!</span> User: ${JSON.stringify(data.user)}`;
+        } else {
+          resultDiv.innerHTML = `<span class="error">Not authenticated.</span> ${data.message || ''}`;
+        }
+      } catch (error) {
+        resultDiv.innerHTML = `<span class="error">Error:</span> ${error.message}`;
+      }
+    });
+    
+    // Test logout
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      const resultDiv = document.getElementById('logoutResult');
+      resultDiv.innerHTML = 'Logging out...';
+      
+      try {
+        const response = await fetch('/api/auth/logout', {
+          method: 'POST',
+          credentials: 'include'
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.success) {
+          resultDiv.innerHTML = `<span class="success">Logout successful!</span> ${data.message || ''}`;
+        } else {
+          resultDiv.innerHTML = `<span class="error">Logout failed:</span> ${data.message || 'Unknown error'}`;
+        }
+      } catch (error) {
+        resultDiv.innerHTML = `<span class="error">Error:</span> ${error.message}`;
+      }
+    });
+  </script>
+</body>
+</html>

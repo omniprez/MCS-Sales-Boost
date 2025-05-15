@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Team Page - Performance Dashboard Focus</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    .chart-container {
+      height: 200px;
+      position: relative;
+    }
+    .progress-ring {
+      transform: rotate(-90deg);
+      transform-origin: 50% 50%;
+    }
+    .progress-ring-circle {
+      transition: stroke-dashoffset 0.35s;
+      transform-origin: 50% 50%;
+    }
+  </style>
+</head>
+<body class="bg-gray-50">
+  <div class="container mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold text-blue-600 mb-2">Team Performance</h1>
+    <p class="text-gray-500 mb-8">Monitor your team's metrics and performance in real-time</p>
+    
+    <!-- Team Summary Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+      <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-sm font-medium text-gray-500 mb-1">Team Quota Attainment</h3>
+        <div class="flex items-end">
+          <span class="text-3xl font-bold text-gray-800">78%</span>
+          <span class="text-sm text-green-500 ml-2 mb-1">+12% from last quarter</span>
+        </div>
+        <div class="w-full bg-gray-200 rounded-full h-2.5 mt-3">
+          <div class="bg-blue-600 h-2.5 rounded-full" style="width: 78%"></div>
+        </div>
+      </div>
+      
+      <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-sm font-medium text-gray-500 mb-1">Total Pipeline Value</h3>
+        <div class="flex items-end">
+          <span class="text-3xl font-bold text-gray-800">Rs. 4.2M</span>
+          <span class="text-sm text-green-500 ml-2 mb-1">+8% MoM</span>
+        </div>
+        <div class="w-full bg-gray-200 rounded-full h-2.5 mt-3">
+          <div class="bg-blue-600 h-2.5 rounded-full" style="width: 65%"></div>
+        </div>
+      </div>
+      
+      <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-sm font-medium text-gray-500 mb-1">Win Rate</h3>
+        <div class="flex items-end">
+          <span class="text-3xl font-bold text-gray-800">42%</span>
+          <span class="text-sm text-red-500 ml-2 mb-1">-3% MoM</span>
+        </div>
+        <div class="w-full bg-gray-200 rounded-full h-2.5 mt-3">
+          <div class="bg-blue-600 h-2.5 rounded-full" style="width: 42%"></div>
+        </div>
+      </div>
+      
+      <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-sm font-medium text-gray-500 mb-1">Avg. Deal Cycle</h3>
+        <div class="flex items-end">
+          <span class="text-3xl font-bold text-gray-800">32 days</span>
+          <span class="text-sm text-green-500 ml-2 mb-1">-4 days</span>
+        </div>
+        <div class="w-full bg-gray-200 rounded-full h-2.5 mt-3">
+          <div class="bg-blue-600 h-2.5 rounded-full" style="width: 70%"></div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Performance Charts -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+      <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-lg font-medium text-gray-800 mb-4">Revenue by Product Category</h3>
+        <div class="chart-container">
+          <!-- Placeholder for chart -->
+          <div class="flex h-full">
+            <div class="w-1/2 flex flex-col justify-end">
+              <div class="bg-blue-500 h-3/4 rounded-t"></div>
+              <div class="text-center mt-2 text-sm">Wireless</div>
+            </div>
+            <div class="w-1/2 flex flex-col justify-end">
+              <div class="bg-indigo-500 h-1/2 rounded-t"></div>
+              <div class="text-center mt-2 text-sm">Fiber</div>
+            </div>
+          </div>
+        </div>
+        <div class="flex justify-between text-sm text-gray-500 mt-4">
+          <div>Wireless: Rs. 2.8M (67%)</div>
+          <div>Fiber: Rs. 1.4M (33%)</div>
+        </div>
+      </div>
+      
+      <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-lg font-medium text-gray-800 mb-4">Pipeline Distribution</h3>
+        <div class="chart-container">
+          <!-- Placeholder for chart -->
+          <div class="flex h-full items-end space-x-2">
+            <div class="flex-1 flex flex-col items-center">
+              <div class="bg-blue-200 w-full rounded-t" style="height: 15%"></div>
+              <div class="text-center mt-2 text-xs">Prospecting</div>
+            </div>
+            <div class="flex-1 flex flex-col items-center">
+              <div class="bg-blue-300 w-full rounded-t" style="height: 30%"></div>
+              <div class="text-center mt-2 text-xs">Qualification</div>
+            </div>
+            <div class="flex-1 flex flex-col items-center">
+              <div class="bg-blue-400 w-full rounded-t" style="height: 45%"></div>
+              <div class="text-center mt-2 text-xs">Proposal</div>
+            </div>
+            <div class="flex-1 flex flex-col items-center">
+              <div class="bg-blue-500 w-full rounded-t" style="height: 25%"></div>
+              <div class="text-center mt-2 text-xs">Negotiation</div>
+            </div>
+            <div class="flex-1 flex flex-col items-center">
+              <div class="bg-blue-600 w-full rounded-t" style="height: 20%"></div>
+              <div class="text-center mt-2 text-xs">Closed Won</div>
+            </div>
+          </div>
+        </div>
+        <div class="text-sm text-gray-500 mt-4">
+          Highest concentration in Proposal stage (45%)
+        </div>
+      </div>
+    </div>
+    
+    <!-- Team Performance Table -->
+    <div class="bg-white rounded-lg shadow overflow-hidden mb-8">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <h3 class="text-lg font-medium text-gray-800">Team Member Performance</h3>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Team Member</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Deals Closed</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Revenue</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quota Attainment</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Win Rate</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Avg Deal Size</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            <tr>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center">
+                  <div class="flex-shrink-0 h-10 w-10">
+                    <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-500 font-bold">SR</div>
+                  </div>
+                  <div class="ml-4">
+                    <div class="text-sm font-medium text-gray-900">Sarah Robinson</div>
+                    <div class="text-sm text-gray-500">Enterprise Sales</div>
+                  </div>
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">12</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Rs. 1.2M</td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">92%</div>
+                <div class="w-full bg-gray-200 rounded-full h-1.5">
+                  <div class="bg-green-500 h-1.5 rounded-full" style="width: 92%"></div>
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">48%</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Rs. 100K</td>
+            </tr>
+            <tr>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center">
+                  <div class="flex-shrink-0 h-10 w-10">
+                    <div class="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center text-green-500 font-bold">MK</div>
+                  </div>
+                  <div class="ml-4">
+                    <div class="text-sm font-medium text-gray-900">Michael Kumar</div>
+                    <div class="text-sm text-gray-500">SMB Sales</div>
+                  </div>
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">18</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Rs. 950K</td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">78%</div>
+                <div class="w-full bg-gray-200 rounded-full h-1.5">
+                  <div class="bg-blue-500 h-1.5 rounded-full" style="width: 78%"></div>
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">52%</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Rs. 52K</td>
+            </tr>
+            <tr>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center">
+                  <div class="flex-shrink-0 h-10 w-10">
+                    <div class="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-500 font-bold">AP</div>
+                  </div>
+                  <div class="ml-4">
+                    <div class="text-sm font-medium text-gray-900">Ananya Patel</div>
+                    <div class="text-sm text-gray-500">Enterprise Sales</div>
+                  </div>
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">8</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Rs. 1.4M</td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">105%</div>
+                <div class="w-full bg-gray-200 rounded-full h-1.5">
+                  <div class="bg-green-500 h-1.5 rounded-full" style="width: 100%"></div>
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">38%</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Rs. 175K</td>
+            </tr>
+            <tr>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center">
+                  <div class="flex-shrink-0 h-10 w-10">
+                    <div class="h-10 w-10 rounded-full bg-yellow-100 flex items-center justify-center text-yellow-500 font-bold">RJ</div>
+                  </div>
+                  <div class="ml-4">
+                    <div class="text-sm font-medium text-gray-900">Raj Joshi</div>
+                    <div class="text-sm text-gray-500">SMB Sales</div>
+                  </div>
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">15</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Rs. 650K</td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">54%</div>
+                <div class="w-full bg-gray-200 rounded-full h-1.5">
+                  <div class="bg-yellow-500 h-1.5 rounded-full" style="width: 54%"></div>
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">35%</td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Rs. 43K</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    
+    <!-- Activity Feed -->
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+      <div class="px-6 py-4 border-b border-gray-200">
+        <h3 class="text-lg font-medium text-gray-800">Recent Team Activity</h3>
+      </div>
+      <div class="divide-y divide-gray-200">
+        <div class="px-6 py-4">
+          <div class="flex">
+            <div class="flex-shrink-0">
+              <div class="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-500 font-bold">SR</div>
+            </div>
+            <div class="ml-4">
+              <div class="text-sm font-medium text-gray-900">Sarah Robinson closed a deal with TechSolutions Inc.</div>
+              <div class="text-sm text-gray-500">Value: Rs. 180K • 2 hours ago</div>
+            </div>
+          </div>
+        </div>
+        <div class="px-6 py-4">
+          <div class="flex">
+            <div class="flex-shrink-0">
+              <div class="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-500 font-bold">AP</div>
+            </div>
+            <div class="ml-4">
+              <div class="text-sm font-medium text-gray-900">Ananya Patel moved Global Enterprises deal to Negotiation</div>
+              <div class="text-sm text-gray-500">Value: Rs. 320K • 5 hours ago</div>
+            </div>
+          </div>
+        </div>
+        <div class="px-6 py-4">
+          <div class="flex">
+            <div class="flex-shrink-0">
+              <div class="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center text-green-500 font-bold">MK</div>
+            </div>
+            <div class="ml-4">
+              <div class="text-sm font-medium text-gray-900">Michael Kumar created 3 new deals</div>
+              <div class="text-sm text-gray-500">Combined value: Rs. 125K • Yesterday</div>
+            </div>
+          </div>
+        </div>
+        <div class="px-6 py-4">
+          <div class="flex">
+            <div class="flex-shrink-0">
+              <div class="h-10 w-10 rounded-full bg-yellow-100 flex items-center justify-center text-yellow-500 font-bold">RJ</div>
+            </div>
+            <div class="ml-4">
+              <div class="text-sm font-medium text-gray-900">Raj Joshi scheduled a demo with Innovative Systems</div>
+              <div class="text-sm text-gray-500">Potential value: Rs. 85K • Yesterday</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

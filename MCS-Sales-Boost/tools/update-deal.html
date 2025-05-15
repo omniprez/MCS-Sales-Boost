@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Deal Name</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, button {
+            padding: 8px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
+            display: none;
+        }
+        #dealsList {
+            margin-top: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .debug-section {
+            margin-top: 30px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
+        }
+        .debug-log {
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+    <h1>Update Deal Name Tool</h1>
+    <p>This tool allows you to directly update a deal's name in the database.</p>
+    
+    <div id="dealsList">
+        <h2>Available Deals</h2>
+        <p>Loading deals...</p>
+    </div>
+    
+    <form id="updateForm">
+        <div class="form-group">
+            <label for="dealId">Deal ID:</label>
+            <input type="number" id="dealId" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="newName">New Deal Name:</label>
+            <input type="text" id="newName" required>
+        </div>
+        
+        <button type="submit">Update Deal</button>
+    </form>
+    
+    <div id="result"></div>
+    
+    <div class="debug-section">
+        <h2>Debug Information</h2>
+        <div id="debugLog" class="debug-log"></div>
+    </div>
+    
+    <script>
+        // Debug logging function
+        function log(message) {
+            const debugLog = document.getElementById('debugLog');
+            const timestamp = new Date().toISOString();
+            debugLog.innerHTML += `[${timestamp}] ${message}\n`;
+            console.log(message);
+        }
+        
+        // Fetch and display deals
+        async function fetchDeals() {
+            try {
+                log('Fetching deals from API...');
+                const response = await fetch('/api/deals');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const deals = await response.json();
+                log(`Fetched ${deals.length} deals from API`);
+                
+                // Display deals in a table
+                const dealsTable = document.createElement('table');
+                dealsTable.innerHTML = `
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Value</th>
+                            <th>Category</th>
+                            <th>Stage</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${deals.map(deal => `
+                            <tr>
+                                <td>${deal.id}</td>
+                                <td>${deal.name || 'No Name'}</td>
+                                <td>${deal.value || 'N/A'}</td>
+                                <td>${deal.category || 'N/A'}</td>
+                                <td>${deal.stage || 'N/A'}</td>
+                                <td>
+                                    <button onclick="selectDeal(${deal.id}, '${deal.name || ''}')">Select</button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                `;
+                
+                const dealsList = document.getElementById('dealsList');
+                dealsList.innerHTML = '<h2>Available Deals</h2>';
+                dealsList.appendChild(dealsTable);
+                
+            } catch (error) {
+                console.error('Error fetching deals:', error);
+                log(`Error fetching deals: ${error.message}`);
+                document.getElementById('dealsList').innerHTML = `
+                    <h2>Available Deals</h2>
+                    <p>Error loading deals: ${error.message}</p>
+                `;
+            }
+        }
+        
+        // Select a deal to update
+        function selectDeal(id, name) {
+            log(`Selected deal ID: ${id}, Name: ${name}`);
+            document.getElementById('dealId').value = id;
+            document.getElementById('newName').value = name;
+        }
+        
+        // Handle form submission
+        document.getElementById('updateForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const dealId = document.getElementById('dealId').value;
+            const newName = document.getElementById('newName').value;
+            
+            if (!dealId || !newName) {
+                alert('Please enter both Deal ID and New Name');
+                return;
+            }
+            
+            log(`Updating deal ${dealId} with new name: "${newName}"`);
+            
+            const resultDiv = document.getElementById('result');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = 'Updating deal...';
+            
+            try {
+                // First try with direct fetch
+                log(`Sending PATCH request to /api/deals/${dealId}`);
+                const response = await fetch(`/api/deals/${dealId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Cache-Control': 'no-cache'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ name: newName })
+                });
+                
+                log(`Response status: ${response.status}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                log(`Response data: ${JSON.stringify(result)}`);
+                
+                resultDiv.innerHTML = `
+                    <h3>Update Successful!</h3>
+                    <p>Deal ID: ${result.id}</p>
+                    <p>New Name: ${result.name}</p>
+                    <pre>${JSON.stringify(result, null, 2)}</pre>
+                `;
+                
+                // Try a direct SQL update as a fallback
+                log('Attempting direct SQL update as a fallback...');
+                const directUpdateResponse = await fetch('/api/direct-update-deal', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ 
+                        dealId: dealId,
+                        name: newName
+                    })
+                });
+                
+                if (directUpdateResponse.ok) {
+                    const directResult = await directUpdateResponse.json();
+                    log(`Direct SQL update result: ${JSON.stringify(directResult)}`);
+                    resultDiv.innerHTML += `
+                        <h3>Direct SQL Update Result</h3>
+                        <pre>${JSON.stringify(directResult, null, 2)}</pre>
+                    `;
+                }
+                
+                // Refresh the deals list
+                fetchDeals();
+                
+            } catch (error) {
+                console.error('Error updating deal:', error);
+                log(`Error updating deal: ${error.message}`);
+                resultDiv.innerHTML = `
+                    <h3>Error!</h3>
+                    <p>${error.message}</p>
+                `;
+                
+                // Try a direct SQL update as a fallback
+                try {
+                    log('Attempting direct SQL update as a fallback after error...');
+                    const directUpdateResponse = await fetch('/api/direct-update-deal', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        credentials: 'include',
+                        body: JSON.stringify({ 
+                            dealId: dealId,
+                            name: newName
+                        })
+                    });
+                    
+                    if (directUpdateResponse.ok) {
+                        const directResult = await directUpdateResponse.json();
+                        log(`Direct SQL update result: ${JSON.stringify(directResult)}`);
+                        resultDiv.innerHTML += `
+                            <h3>Direct SQL Update Result</h3>
+                            <pre>${JSON.stringify(directResult, null, 2)}</pre>
+                        `;
+                        
+                        // Refresh the deals list
+                        fetchDeals();
+                    } else {
+                        log(`Direct SQL update failed with status: ${directUpdateResponse.status}`);
+                        const errorText = await directUpdateResponse.text();
+                        log(`Error response: ${errorText}`);
+                    }
+                } catch (fallbackError) {
+                    console.error('Error with fallback update:', fallbackError);
+                    log(`Error with fallback update: ${fallbackError.message}`);
+                }
+            }
+        });
+        
+        // Load deals when the page loads
+        window.addEventListener('load', () => {
+            log('Page loaded, fetching deals...');
+            fetchDeals();
+        });
+    </script>
+</body>
+</html>
