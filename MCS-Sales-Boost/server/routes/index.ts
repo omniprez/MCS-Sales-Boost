@@ -5,6 +5,7 @@ import authRouter from './auth';
 import apiRouter from './api';
 import adminRouter from './admin';
 import { testConnection } from '../db';
+import { Pool } from 'pg';
 
 // Get __dirname equivalent for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -31,6 +32,101 @@ export function registerRoutes(app: express.Express) {
         success: false,
         error: error.message || 'Unknown database error',
         timestamp: new Date().toISOString()
+      });
+    }
+  });
+
+  // Direct PostgreSQL connection test endpoint
+  app.get('/api/db-direct-test', async (req, res) => {
+    try {
+      // Create a new pool directly
+      const directPool = new Pool({
+        connectionString: process.env.DATABASE_URL,
+        ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+      });
+      
+      // Try to connect
+      const client = await directPool.connect();
+      try {
+        // Simple query
+        const result = await client.query('SELECT NOW() as time');
+        
+        res.json({
+          success: true,
+          message: 'Direct database connection successful',
+          time: result.rows[0].time,
+          database_url_prefix: process.env.DATABASE_URL?.substring(0, 15) + '...'
+        });
+      } finally {
+        client.release();
+        await directPool.end();
+      }
+    } catch (error) {
+      console.error('Direct database connection test failed:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      });
+    }
+  });
+
+  // Direct login test endpoint that doesn't use sessions
+  app.post('/api/direct-login-test', async (req, res) => {
+    try {
+      const { username, password } = req.body;
+      
+      if (!username || !password) {
+        return res.status(400).json({
+          success: false,
+          error: 'Username and password required'
+        });
+      }
+      
+      // Create a new pool directly
+      const directPool = new Pool({
+        connectionString: process.env.DATABASE_URL,
+        ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+      });
+      
+      // Try to connect
+      const client = await directPool.connect();
+      try {
+        // Query for user
+        const userResult = await client.query(
+          'SELECT * FROM users WHERE username = $1 LIMIT 1',
+          [username.toLowerCase()]
+        );
+        
+        if (userResult.rows.length === 0) {
+          return res.status(401).json({
+            success: false,
+            error: 'User not found'
+          });
+        }
+        
+        const user = userResult.rows[0];
+        
+        // Skip password validation for test purposes
+        return res.json({
+          success: true,
+          message: 'Direct login test successful',
+          user: {
+            id: user.id,
+            username: user.username,
+            role: user.role || 'sales_rep'
+          }
+        });
+      } finally {
+        client.release();
+        await directPool.end();
+      }
+    } catch (error) {
+      console.error('Direct login test failed:', error);
+      res.status(500).json({
+        success: false,
+        error: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
       });
     }
   });

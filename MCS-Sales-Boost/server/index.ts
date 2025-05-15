@@ -47,6 +47,15 @@ const allowedOrigins = [
 app.use(express.json({ limit: '5mb' }));
 app.use(express.urlencoded({ extended: false, limit: '5mb' }));
 
+// Simple health check endpoint with no middleware
+app.get('/api/health-check', (req, res) => {
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'unknown'
+  });
+});
+
 // Enhanced CORS configuration
 app.use(cors({
   origin: (origin, callback) => {

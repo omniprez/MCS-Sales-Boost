@@ -9,6 +9,7 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imagesPreloaded, setImagesPreloaded] = useState(false);
+  const [errorDetails, setErrorDetails] = useState('');
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { login, isLoading } = useAuth();
@@ -43,11 +44,37 @@ export default function Login() {
     preloadImages();
   }, []);
 
+  // Try direct API connection
+  const testApiConnection = async () => {
+    try {
+      setErrorDetails('Testing API connection...');
+      
+      // Try fetch with a simple endpoint without authentication
+      const response = await fetch('/api/health-check');
+      const data = await response.text();
+      
+      setErrorDetails(prev => prev + '\nHealth check response: ' + data);
+      
+      // Try database connection test
+      try {
+        const dbResponse = await fetch('/api/db-direct-test');
+        const dbData = await dbResponse.text();
+        setErrorDetails(prev => prev + '\nDB test response: ' + dbData);
+      } catch (dbError) {
+        setErrorDetails(prev => prev + '\nDB test error: ' + (dbError instanceof Error ? dbError.message : String(dbError)));
+      }
+    } catch (error) {
+      setErrorDetails(prev => prev + '\nAPI test error: ' + (error instanceof Error ? error.message : String(error)));
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting) return;
 
     setIsSubmitting(true);
+    setErrorDetails('');
+    
     try {
       console.log('Login: Attempting login with username:', username);
 
@@ -77,11 +104,19 @@ export default function Login() {
 
     } catch (error) {
       console.error('Login: Login error:', error);
+      
+      // Show error toast
       toast({
         title: "Error",
         description: error instanceof Error ? error.message : "Failed to login",
         variant: "destructive"
       });
+      
+      // Set error details to show in the UI
+      setErrorDetails('Login error: ' + (error instanceof Error ? error.message : String(error)));
+      
+      // Automatically test API connection
+      await testApiConnection();
     } finally {
       setIsSubmitting(false);
     }
@@ -152,6 +187,26 @@ export default function Login() {
           >
             {isSubmitting ? "Signing in..." : "Sign In"}
           </button>
+          
+          {/* Error diagnostics section */}
+          {errorDetails && (
+            <div className="error-details" style={{ 
+              marginTop: '20px', 
+              color: '#fff', 
+              backgroundColor: 'rgba(220, 53, 69, 0.7)', 
+              padding: '10px', 
+              borderRadius: '5px',
+              fontSize: '12px',
+              whiteSpace: 'pre-wrap'
+            }}>
+              <details>
+                <summary style={{ cursor: 'pointer', fontWeight: 'bold' }}>Error Details (Click to expand)</summary>
+                <div style={{ marginTop: '10px' }}>
+                  {errorDetails}
+                </div>
+              </details>
+            </div>
+          )}
         </form>
       </div>
     </div>

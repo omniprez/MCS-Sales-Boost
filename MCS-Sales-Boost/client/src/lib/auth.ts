@@ -20,12 +20,11 @@ export async function login(username: string, password: string): Promise<LoginRe
     const apiUrl = `${API_BASE_URL}${API_ENDPOINTS.AUTH.LOGIN}`;
     console.log("Using API URL:", apiUrl);
 
+    // Try with simplified request first to rule out issues with complex headers
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'Cache-Control': 'no-cache',
-        'Pragma': 'no-cache'
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({ username, password }),
       credentials: 'include',
@@ -37,7 +36,9 @@ export async function login(username: string, password: string): Promise<LoginRe
     let responseText;
     try {
       responseText = await response.text();
-      console.log("Raw response text:", responseText);
+      console.log("Raw response text:", responseText.length > 100 ? 
+                    responseText.substring(0, 100) + '...' : 
+                    responseText);
 
       // If the response is empty, return an error
       if (!responseText || !responseText.trim()) {
@@ -62,6 +63,20 @@ export async function login(username: string, password: string): Promise<LoginRe
       console.log("Login response data:", data);
     } catch (jsonError) {
       console.error("Error parsing JSON response:", jsonError);
+      console.error("Response that failed to parse:", responseText);
+      
+      // Try a direct API call to our debug endpoint
+      try {
+        console.log("Trying direct DB test endpoint...");
+        const dbTestResponse = await fetch(`${API_BASE_URL}/api/db-direct-test`, {
+          method: 'GET'
+        });
+        const dbTestText = await dbTestResponse.text();
+        console.log("DB Test response:", dbTestText);
+      } catch (dbTestError) {
+        console.error("DB Test error:", dbTestError);
+      }
+      
       return {
         success: false,
         message: `Failed to parse server response: ${jsonError instanceof Error ? jsonError.message : 'Invalid JSON'}`
