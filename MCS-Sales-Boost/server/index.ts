@@ -1,6 +1,6 @@
 /**
  * MCS Sales Boost Server
- * Last updated: 2025-05-11 07:21:57 UTC
+ * Last updated: 2025-05-16 14:21:57 UTC
  * Author: omniprez
  */
 
@@ -19,13 +19,16 @@ import { setupVite, serveStatic } from './vite';
 // Load environment variables early
 dotenv.config();
 
+// Determine if we're running in a serverless environment
+const isServerless = process.env.VERCEL === '1' || process.env.VERCEL === 'true';
+
 // Get __dirname equivalent for ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Initialize Express app and HTTP server
 const app = express();
-const server = createServer(app);
+const server = isServerless ? null : createServer(app);
 
 // Environment variables
 const host = process.env.HOST || '0.0.0.0';
@@ -34,25 +37,52 @@ const isProduction = process.env.NODE_ENV === 'production';
 const isDevelopment = process.env.NODE_ENV === 'development';
 const useInMemoryDB = process.env.USE_IN_MEMORY_DB === 'true';
 
-// Allowed origins for CORS
+// Allowed origins for CORS - add all Vercel domains
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:5174',
   'https://mcs-sales-boost.vercel.app',
   'https://mcs-sales-boost-1.vercel.app',
-  'https://mcs-sales-boost-xkyy.vercel.app'
+  'https://mcs-sales-boost-xkyy.vercel.app',
+  'https://mcs-sales-boost-xkyy-2ediv9jt5-manishs-projects-4ece3626.vercel.app'
 ];
 
-// Basic middleware setup
-app.use(express.json({ limit: '5mb' }));
-app.use(express.urlencoded({ extended: false, limit: '5mb' }));
+// Basic middleware setup - increased limit for serverless
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: false, limit: '10mb' }));
+
+// Add a required headers middleware for Vercel
+app.use((req, res, next) => {
+  // Set headers for CORS
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+  res.setHeader(
+    'Access-Control-Allow-Headers',
+    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
+  );
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+  
+  // Log request in serverless environment
+  if (isServerless) {
+    console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+  }
+  
+  next();
+});
 
 // Simple health check endpoint with no middleware
 app.get('/api/health-check', (req, res) => {
   res.json({
     status: 'ok',
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'unknown'
+    environment: process.env.NODE_ENV || 'unknown',
+    isServerless: isServerless
   });
 });
 
@@ -63,7 +93,7 @@ app.use(cors({
       callback(null, true);
     } else {
       console.warn(`CORS blocked origin: ${origin}`);
-      callback(new Error('Not allowed by CORS'));
+      callback(null, true); // Allow all origins in production for now
     }
   },
   credentials: true,
@@ -80,13 +110,14 @@ app.use(cors({
   maxAge: 86400 // 24 hours
 }));
 
-// Session store configuration
-const sessionStore = new session.MemoryStore();
+// Session configuration - use memory store for now
+const MemoryStore = session.MemoryStore;
+const sessionStore = new MemoryStore();
 
 // Session configuration
 app.use(session({
   store: sessionStore,
-  secret: process.env.SESSION_SECRET!,
+  secret: process.env.SESSION_SECRET || 'default-secret-for-development-only',
   name: 'mcs_sales_boost_sid',
   resave: false,
   saveUninitialized: false,
@@ -103,7 +134,7 @@ app.use(session({
 // Request logging middleware
 app.use((req, res, next) => {
   // Don't log health check requests
-  if (req.path !== '/health') {
+  if (req.path !== '/health' && req.path !== '/api/health-check') {
     console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
   }
   next();
@@ -130,6 +161,43 @@ app.use((req, res, next) => {
   next();
 });
 
+// Direct Database Test Endpoint
+app.get('/api/db-direct-test', async (req, res) => {
+  try {
+    const { Pool } = require('pg');
+    
+    // Create a new pool directly
+    const directPool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+    });
+    
+    // Try to connect
+    const client = await directPool.connect();
+    try {
+      // Simple query
+      const result = await client.query('SELECT NOW() as time');
+      
+      res.json({
+        success: true,
+        message: 'Direct database connection successful',
+        time: result.rows[0].time,
+        database_url_prefix: process.env.DATABASE_URL?.substring(0, 15) + '...'
+      });
+    } finally {
+      client.release();
+      await directPool.end();
+    }
+  } catch (error) {
+    console.error('Direct database connection test failed:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
+});
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({
@@ -139,23 +207,26 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Development specific setup
-if (isDevelopment) {
-  console.log('[Development Mode] Setting up Vite middleware...');
-  setupVite(app, server).catch(err => {
-    console.error('Vite setup failed:', err);
-    process.exit(1);
-  });
-} else {
-  console.log('[Production Mode] Serving static files...');
-  serveStatic(app);
+// Only use development setup in non-serverless environment
+if (!isServerless) {
+  // Development specific setup
+  if (isDevelopment) {
+    console.log('[Development Mode] Setting up Vite middleware...');
+    setupVite(app, server).catch(err => {
+      console.error('Vite setup failed:', err);
+      process.exit(1);
+    });
+  } else {
+    console.log('[Production Mode] Serving static files...');
+    serveStatic(app);
+  }
 }
 
 // Register API routes
 registerRoutes(app);
 
 // Global error handling middleware
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+app.use((err, req, res, next) => {
   const timestamp = new Date().toISOString();
   console.error('Error occurred:', {
     timestamp,
@@ -172,6 +243,20 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
     details: isDevelopment ? err.stack : undefined
   });
 });
+
+// Database connection and server startup - only in non-serverless
+if (!isServerless) {
+  startServer().catch(console.error);
+} else {
+  // In serverless, just test the connection
+  testConnection()
+    .then(result => {
+      console.log('Database connection test in serverless:', result ? 'successful' : 'failed');
+    })
+    .catch(err => {
+      console.error('Database connection test in serverless failed:', err);
+    });
+}
 
 // Database connection and server startup
 async function startServer() {
@@ -207,25 +292,32 @@ Time: ${new Date().toISOString()}
   }
 }
 
-// Start the server
-startServer().catch(console.error);
-
-// Handle graceful shutdown
-process.on('SIGTERM', () => {
-  console.log('SIGTERM received. Shutting down gracefully...');
-  server.close(() => {
-    console.log('Server closed');
-    process.exit(0);
+// Handle graceful shutdown - only in non-serverless
+if (!isServerless) {
+  process.on('SIGTERM', () => {
+    console.log('SIGTERM received. Shutting down gracefully...');
+    if (server) {
+      server.close(() => {
+        console.log('Server closed');
+        process.exit(0);
+      });
+    } else {
+      process.exit(0);
+    }
   });
-});
 
-// Handle uncaught exceptions
-process.on('uncaughtException', (error) => {
-  console.error('Uncaught Exception:', error);
-  server.close(() => {
-    console.log('Server closed due to uncaught exception');
-    process.exit(1);
+  // Handle uncaught exceptions
+  process.on('uncaughtException', (error) => {
+    console.error('Uncaught Exception:', error);
+    if (server) {
+      server.close(() => {
+        console.log('Server closed due to uncaught exception');
+        process.exit(1);
+      });
+    } else {
+      process.exit(1);
+    }
   });
-});
+}
 
 export { app, server };

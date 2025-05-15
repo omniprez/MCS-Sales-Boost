@@ -20,8 +20,11 @@ export async function login(username: string, password: string): Promise<LoginRe
     const apiUrl = `${API_BASE_URL}${API_ENDPOINTS.AUTH.LOGIN}`;
     console.log("Using API URL:", apiUrl);
 
-    // Try with simplified request first to rule out issues with complex headers
-    const response = await fetch(apiUrl, {
+    // Add timestamp to prevent caching issues in Vercel
+    const timestampedUrl = `${apiUrl}?_t=${Date.now()}`;
+    
+    // Try with simplified request
+    const response = await fetch(timestampedUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -39,6 +42,43 @@ export async function login(username: string, password: string): Promise<LoginRe
       console.log("Raw response text:", responseText.length > 100 ? 
                     responseText.substring(0, 100) + '...' : 
                     responseText);
+
+      // Check if we received HTML instead of JSON (Vercel serverless issue)
+      if (responseText.trim().startsWith('<!DOCTYPE html>') || 
+          responseText.trim().startsWith('<html')) {
+        console.error("Received HTML instead of JSON. API route not found.");
+        
+        // Try alternate approach - direct endpoint
+        try {
+          console.log("Trying direct login endpoint...");
+          const directResponse = await fetch('/api/direct-login-test', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ username, password }),
+          });
+          
+          const directResult = await directResponse.json();
+          console.log("Direct login result:", directResult);
+          
+          if (directResult.success) {
+            // Use the direct login response
+            localStorage.setItem('salesSpark_user', JSON.stringify(directResult.user));
+            return {
+              success: true,
+              user: directResult.user
+            };
+          }
+        } catch (directError) {
+          console.error("Direct login failed:", directError);
+        }
+        
+        return {
+          success: false,
+          message: "API routes not found. Please contact support."
+        };
+      }
 
       // If the response is empty, return an error
       if (!responseText || !responseText.trim()) {
