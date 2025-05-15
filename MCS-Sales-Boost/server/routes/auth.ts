@@ -51,11 +51,20 @@ router.post('/login', async (req, res) => {
     }
 
     const user = userResults[0];
+    console.log('User found, stored password hash:', { hash_length: user.password?.length || 0 });
 
     // Verify password
     try {
+      if (!user.password) {
+        console.error('User password hash is null or undefined');
+        return res.status(500).json({
+          success: false,
+          error: 'Account configuration error'
+        });
+      }
+
       const validPassword = await bcrypt.compare(password, user.password);
-      console.log('Password validation completed');
+      console.log('Password validation completed:', validPassword);
 
       if (!validPassword) {
         console.log(`Invalid password for user: ${username}`);
@@ -68,7 +77,8 @@ router.post('/login', async (req, res) => {
       console.error('Password validation error:', passwordError);
       return res.status(500).json({
         success: false,
-        error: 'Error validating credentials'
+        error: 'Error validating credentials',
+        details: passwordError.message || 'Unknown error'
       });
     }
 

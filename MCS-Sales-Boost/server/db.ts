@@ -56,45 +56,31 @@ export async function testConnection() {
       return false;
     }
 
+    console.log('Attempting database connection with config:', { 
+      connectionString: process.env.DATABASE_URL?.substring(0, 25) + '...',
+      ssl: isProduction ? { rejectUnauthorized: false } : false,
+      environment: process.env.NODE_ENV
+    });
+
     try {
       const client = await pool.connect();
       try {
         const result = await client.query('SELECT 1 as connected');
         console.log('Database connection successful:', result.rows[0]);
 
-        // Check if targets table exists
-        const checkTableResult = await client.query(`
-          SELECT EXISTS (
-            SELECT FROM information_schema.tables
-            WHERE table_schema = 'public'
-            AND table_name = 'targets'
-          );
+        // Get PostgreSQL version
+        const versionResult = await client.query('SELECT version();');
+        console.log('PostgreSQL version:', versionResult.rows[0].version);
+
+        // Check if tables exist
+        const tablesResult = await client.query(`
+          SELECT table_name 
+          FROM information_schema.tables 
+          WHERE table_schema='public'
+          ORDER BY table_name;
         `);
 
-        const tableExists = checkTableResult.rows[0].exists;
-
-        if (!tableExists) {
-          console.log('Targets table does not exist, creating it...');
-
-          // Create the targets table
-          await client.query(`
-            CREATE TABLE targets (
-              id SERIAL PRIMARY KEY,
-              user_id INTEGER NOT NULL,
-              target_type TEXT NOT NULL,
-              period TEXT NOT NULL,
-              start_date TIMESTAMP NOT NULL,
-              end_date TIMESTAMP NOT NULL,
-              target_value DOUBLE PRECISION NOT NULL,
-              current_value DOUBLE PRECISION DEFAULT 0,
-              created_at TIMESTAMP DEFAULT NOW()
-            );
-          `);
-
-          console.log('Targets table created successfully');
-        } else {
-          console.log('Targets table already exists');
-        }
+        console.log('Available tables:', tablesResult.rows.map(row => row.table_name));
 
         return true;
       } finally {
