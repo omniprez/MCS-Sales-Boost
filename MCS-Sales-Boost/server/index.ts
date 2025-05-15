@@ -39,7 +39,8 @@ const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:5174',
   'https://mcs-sales-boost.vercel.app',
-  'https://mcs-sales-boost-1.vercel.app'
+  'https://mcs-sales-boost-1.vercel.app',
+  'https://mcs-sales-boost-xkyy.vercel.app'
 ];
 
 // Basic middleware setup
