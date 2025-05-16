@@ -6,6 +6,14 @@ const session = require('express-session');
 const bcrypt = require('bcrypt');
 const dotenv = require('dotenv');
 
+// Debug info - print environment when module loads
+console.log('API initialization - Environment:', {
+  NODE_ENV: process.env.NODE_ENV || 'not set',
+  DATABASE_URL: process.env.DATABASE_URL ? 'set' : 'not set',
+  VERCEL: process.env.VERCEL || 'not set',
+  VERCEL_ENV: process.env.VERCEL_ENV || 'not set'
+});
+
 // Load environment variables
 dotenv.config();
 
@@ -598,4 +606,7 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 // Export for serverless
-module.exports = app; 
+module.exports = (req, res) => {
+  console.log('Serverless function called:', req.url);
+  return app(req, res);
+}; 

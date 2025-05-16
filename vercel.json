@@ -1,14 +1,24 @@
 {
   "version": 2,
-  "public": true,
-  "functions": {
-    "api/index.js": {
-      "memory": 1024,
-      "maxDuration": 10
-    }
-  },
-  "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api" }
+  "routes": [
+    { "src": "/api/dashboard/revenue-summary", "dest": "/api/index.js" },
+    { "src": "/api/dashboard/pipeline-summary", "dest": "/api/index.js" },
+    { "src": "/api/dashboard/sales-leader", "dest": "/api/index.js" },
+    { "src": "/api/dashboard/leaderboard", "dest": "/api/index.js" },
+    { "src": "/api/dashboard/win-rate", "dest": "/api/index.js" },
+    { "src": "/api/dashboard/conversion-rate", "dest": "/api/index.js" },
+    { "src": "/api/dashboard/revenue-trend", "dest": "/api/index.js" },
+    { "src": "/api/dashboard/pipeline-distribution", "dest": "/api/index.js" },
+    { "src": "/api/dashboard/gp-summary", "dest": "/api/index.js" },
+    { "src": "/api/dashboard/quota-completion", "dest": "/api/index.js" },
+    { "src": "/api/dashboard/avg-deal-size", "dest": "/api/index.js" },
+    { "src": "/api/pipeline", "dest": "/api/index.js" },
+    { "src": "/api/dashboard", "dest": "/api/index.js" },
+    { "src": "/api/deals", "dest": "/api/index.js" },
+    { "src": "/api/deals/.*", "dest": "/api/index.js" },
+    { "src": "/api/auth/.*", "dest": "/api/index.js" },
+    { "src": "/api/(.*)", "dest": "/api/index.js" },
+    { "src": "/(.*)", "dest": "/$1" }
   ],
   "headers": [
     {
@@ -20,8 +30,5 @@
         { "key": "Access-Control-Allow-Headers", "value": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version" }
       ]
     }
-  ],
-  "env": {
-    "NODE_ENV": "production"
-  }
+  ]
 } 
