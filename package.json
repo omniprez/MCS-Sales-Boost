@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "description": "MCS Sales Boost App",
   "scripts": {
-    "build": "echo 'No build step needed for API-only deployment'"
+    "build": "echo 'No build step needed for API-only deployment'",
+    "start": "node api/index.js",
+    "proxy": "node api-proxy.js"
   },
   "dependencies": {
     "cors": "^2.8.5",
@@ -11,7 +13,8 @@
     "express-session": "^1.17.3",
     "bcrypt": "^6.0.0",
     "dotenv": "^16.5.0",
-    "pg": "^8.16.0"
+    "pg": "^8.16.0",
+    "http-proxy-middleware": "^2.0.6"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
