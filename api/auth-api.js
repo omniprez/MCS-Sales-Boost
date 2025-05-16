@@ -34,6 +34,20 @@ const connectToDatabase = async () => {
   }
 };
 
+// Help extract auth endpoint from URL
+const getAuthEndpoint = (reqUrl) => {
+  if (!reqUrl) return null;
+  
+  const parts = reqUrl.split('/');
+  const authIndex = parts.findIndex(part => part === 'auth');
+  
+  if (authIndex >= 0 && authIndex < parts.length - 1) {
+    return parts[authIndex + 1];
+  }
+  
+  return null;
+};
+
 // Initialize Express app
 const app = express();
 
@@ -156,6 +170,25 @@ app.all('/api/auth/*', (req, res) => {
 
 // Export for serverless function
 module.exports = (req, res) => {
-  console.log('Auth API handler called:', req.url);
+  // Debug: print incoming request details
+  console.log('Auth API handler called:', { 
+    url: req.url, 
+    method: req.method,
+    headers: req.headers
+  });
+  
+  // Extract the auth endpoint from the URL for path matching
+  const endpoint = getAuthEndpoint(req.url);
+  console.log('Extracted auth endpoint:', endpoint);
+  
+  // If this is an API request with a specific endpoint like /api/auth/login
+  if (endpoint) {
+    // Modify req.url to ensure Express routing works correctly
+    const originalUrl = req.url;
+    req.url = `/api/auth/${endpoint}`;
+    console.log(`Rewriting URL from ${originalUrl} to ${req.url}`);
+  }
+  
+  // Process the request with the Express app
   return app(req, res);
 }; 

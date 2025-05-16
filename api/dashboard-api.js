@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
 const dotenv = require('dotenv');
+const url = require('url');
 
 // Load environment variables
 dotenv.config();
@@ -36,6 +37,21 @@ const app = express();
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Help extract endpoint from the URL
+const getEndpoint = (reqUrl) => {
+  if (!reqUrl) return null;
+  
+  const parts = reqUrl.split('/');
+  // Look for the endpoint part after "dashboard/"
+  const dashboardIndex = parts.findIndex(part => part === 'dashboard');
+  
+  if (dashboardIndex >= 0 && dashboardIndex < parts.length - 1) {
+    return parts[dashboardIndex + 1];
+  }
+  
+  return null;
+};
 
 // Dashboard metrics routes
 app.get('/api/dashboard/revenue-summary', async (req, res) => {
@@ -426,6 +442,25 @@ app.get('/api/dashboard/*', async (req, res) => {
 
 // Export for serverless function
 module.exports = (req, res) => {
-  console.log('Dashboard API handler called:', req.url);
+  // Debug: print incoming request details
+  console.log('Dashboard API handler called:', { 
+    url: req.url,
+    method: req.method,
+    headers: req.headers
+  });
+  
+  // Extract the endpoint from the URL for path matching
+  const endpoint = getEndpoint(req.url);
+  console.log('Extracted endpoint:', endpoint);
+  
+  // If this is an API request with a specific endpoint like /api/dashboard/revenue-summary
+  if (endpoint) {
+    // Modify req.url to ensure Express routing works correctly
+    const originalUrl = req.url;
+    req.url = `/api/dashboard/${endpoint}`;
+    console.log(`Rewriting URL from ${originalUrl} to ${req.url}`);
+  }
+  
+  // Process the request with the Express app
   return app(req, res);
 }; 

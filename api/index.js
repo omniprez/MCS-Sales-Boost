@@ -605,8 +605,41 @@ if (process.env.NODE_ENV !== 'production') {
   });
 }
 
+// Extract API endpoint from the URL
+const getApiEndpoint = (reqUrl) => {
+  if (!reqUrl) return null;
+  
+  const parts = reqUrl.split('/');
+  const apiIndex = parts.findIndex(part => part === 'api');
+  
+  if (apiIndex >= 0 && apiIndex < parts.length - 1) {
+    return parts[apiIndex + 1];
+  }
+  
+  return null;
+};
+
 // Export for serverless
 module.exports = (req, res) => {
-  console.log('API Index handler called:', req.url);
+  // Debug: print incoming request details
+  console.log('API Index handler called:', { 
+    url: req.url, 
+    method: req.method,
+    headers: req.headers
+  });
+  
+  // Extract the general API endpoint for path matching
+  const endpoint = getApiEndpoint(req.url);
+  console.log('Extracted API endpoint:', endpoint);
+  
+  // For general API endpoints like /api/health-check or /api/version
+  if (endpoint && !req.url.includes('/api/dashboard') && !req.url.includes('/api/auth') && !req.url.includes('/api/deals')) {
+    // Modify req.url to ensure Express routing works correctly
+    const originalUrl = req.url;
+    req.url = `/api/${endpoint}`;
+    console.log(`Rewriting URL from ${originalUrl} to ${req.url}`);
+  }
+  
+  // Process the request with the Express app
   return app(req, res);
 };

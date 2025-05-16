@@ -30,6 +30,20 @@ const connectToDatabase = async () => {
   }
 };
 
+// Help extract deal ID from the URL
+const getDealId = (reqUrl) => {
+  if (!reqUrl) return null;
+  
+  const parts = reqUrl.split('/');
+  const dealsIndex = parts.findIndex(part => part === 'deals');
+  
+  if (dealsIndex >= 0 && dealsIndex < parts.length - 1) {
+    return parts[dealsIndex + 1];
+  }
+  
+  return null;
+};
+
 // Initialize Express app
 const app = express();
 
@@ -253,6 +267,29 @@ app.all('/api/deals/*', (req, res) => {
 
 // Export for serverless function
 module.exports = (req, res) => {
-  console.log('Deals API handler called:', req.url);
+  // Debug: print incoming request details
+  console.log('Deals API handler called:', { 
+    url: req.url, 
+    method: req.method,
+    headers: req.headers
+  });
+  
+  // Parse the URL and extract the deal ID if present
+  const dealId = getDealId(req.url);
+  
+  // Handle specific routes by rewriting the URL for Express routing
+  if (req.url.includes('/api/deals') && dealId) {
+    // This is a request for a specific deal
+    const originalUrl = req.url;
+    req.url = `/api/deals/${dealId}`;
+    console.log(`Rewriting URL from ${originalUrl} to ${req.url}`);
+  } else if (req.url.includes('/api/deals')) {
+    // This is a request for all deals
+    const originalUrl = req.url;
+    req.url = '/api/deals';
+    console.log(`Rewriting URL from ${originalUrl} to ${req.url}`);
+  }
+  
+  // Process the request with the Express app
   return app(req, res);
 }; 
