@@ -252,4 +252,7 @@ app.all('/api/deals/*', (req, res) => {
 });
 
 // Export for serverless function
-module.exports = app; 
+module.exports = (req, res) => {
+  console.log('Deals API handler called:', req.url);
+  return app(req, res);
+}; 

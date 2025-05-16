@@ -425,4 +425,7 @@ app.get('/api/dashboard/*', async (req, res) => {
 });
 
 // Export for serverless function
-module.exports = app; 
+module.exports = (req, res) => {
+  console.log('Dashboard API handler called:', req.url);
+  return app(req, res);
+}; 
