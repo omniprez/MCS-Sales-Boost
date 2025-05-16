@@ -9,7 +9,11 @@
   "routes": [
     {
       "src": "/api/dashboard/(.*)",
-      "dest": "/api/dashboard/$1.js"
+      "dest": "/api/dashboard/index.js"
+    },
+    {
+      "src": "/api/dashboard.*",
+      "dest": "/api/dashboard-api.js"
     },
     {
       "src": "/api/(.*)",
