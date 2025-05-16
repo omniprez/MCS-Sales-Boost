@@ -1,18 +1,17 @@
 {
   "version": 2,
-  "buildCommand": "cd MCS-Sales-Boost/client && npm install && npm run build",
+  "buildCommand": "npm run build",
   "installCommand": "npm install",
-  "outputDirectory": "MCS-Sales-Boost/client/dist",
+  "outputDirectory": "dist/public",
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api" }
+  ],
   "functions": {
     "api/index.js": {
       "memory": 1024,
       "maxDuration": 10
     }
   },
-  "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/index.js" },
-    { "source": "/(.*)", "destination": "/index.html" }
-  ],
   "env": {
     "NODE_ENV": "production"
   }

@@ -1,18 +1,4 @@
 {
-  "name": "mcs-sales-boost",
-  "version": "1.0.0",
-  "description": "MCS Sales Boost App",
-  "scripts": {
-    "build": "cd MCS-Sales-Boost/client && npm install && npm run build",
-    "start": "node api/index.js"
-  },
-  "dependencies": {
-    "express": "^4.18.2",
-    "pg": "^8.10.0",
-    "cors": "^2.8.5",
-    "express-session": "^1.17.3",
-    "bcrypt": "^5.1.0"
-  },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
     "@types/cors": "^2.8.18",
