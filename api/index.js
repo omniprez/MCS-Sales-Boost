@@ -1,983 +1,601 @@
-// Import necessary modules
+// Import required modules
 const express = require('express');
-const { Pool } = require('pg');
 const cors = require('cors');
+const { Pool } = require('pg');
 const session = require('express-session');
+const bcrypt = require('bcrypt');
+const dotenv = require('dotenv');
 
-// Initialize Express app
-const app = express();
+// Load environment variables
+dotenv.config();
 
-// Detect if the request is coming from Vercel
-const detectVercelRequest = (req) => {
-  return req.headers['x-vercel-id'] || req.headers['x-forwarded-host']?.includes('vercel');
-};
-
-// This function helps us match routes regardless of prefix
-const matchRoute = (pattern, path) => {
-  if (pattern === path) return true;
-  
-  // For patterns like '/api/dashboard/leaderboard'
-  if (path.endsWith(pattern)) return true;
-  
-  // Handle nested paths by looking for the last part of the URL
-  const patternParts = pattern.split('/').filter(Boolean);
-  const pathParts = path.split('/').filter(Boolean);
-  
-  if (patternParts.length === 0 || pathParts.length === 0) return false;
-  
-  // Match the last parts of the path
-  return patternParts[patternParts.length - 1] === pathParts[pathParts.length - 1];
-};
-
-// Add path routing middleware
-app.use((req, res, next) => {
-  // Log request details
-  console.log(`Original request: ${req.method} ${req.url}`);
-  console.log('Headers:', JSON.stringify(req.headers));
-  
-  // Save original URL for later
-  req.originalFullUrl = req.url;
-  
-  // If we're on Vercel, try to get the real path
-  if (detectVercelRequest(req)) {
-    console.log('Vercel request detected');
-    
-    const xForwardedUri = req.headers['x-forwarded-uri'];
-    const xOriginalUri = req.headers['x-original-uri'];
-    const xVercelDestination = req.headers['x-vercel-destination-path'];
-    
-    console.log('x-forwarded-uri:', xForwardedUri);
-    console.log('x-original-uri:', xOriginalUri);
-    console.log('x-vercel-destination-path:', xVercelDestination);
-    
-    // Try to get the real path from headers
-    if (xForwardedUri) {
-      req.url = xForwardedUri;
-      console.log('Using x-forwarded-uri for path:', req.url);
-    } else if (xOriginalUri) {
-      req.url = xOriginalUri;
-      console.log('Using x-original-uri for path:', req.url);
-    }
-  }
-  
-  next();
-});
-
-// Database connection with detailed error logging
+// Database connection
 const connectToDatabase = async () => {
   try {
-    console.log('Attempting database connection...');
-    console.log('DATABASE_URL defined:', !!process.env.DATABASE_URL);
-    
-    if (!process.env.DATABASE_URL) {
-      console.error('DATABASE_URL is not defined in environment variables');
-      return null;
-    }
-    
     const pool = new Pool({
       connectionString: process.env.DATABASE_URL,
-      ssl: { rejectUnauthorized: false }
+      ssl: {
+        rejectUnauthorized: false
+      }
     });
     
-    // Verify connection
-    console.log('Pool created, attempting to connect...');
+    // Test the connection
     const client = await pool.connect();
-    console.log('Client connected, running test query...');
-    const result = await client.query('SELECT NOW()');
+    await client.query('SELECT NOW()');
     client.release();
     
-    console.log('Database connected successfully:', result.rows[0]);
+    console.log('Database connection successful');
     return pool;
   } catch (error) {
-    console.error('Database connection error details:', {
-      message: error.message,
-      stack: error.stack,
-      code: error.code,
-      detail: error.detail
-    });
+    console.error('Database connection error:', error);
     return null;
   }
 };
 
-// CORS configuration
-app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
-}));
+// Initialize Express app
+const app = express();
 
-// Body parsers
+// Middleware
+app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Session configuration
+// Session middleware
 app.use(session({
   secret: process.env.SESSION_SECRET || 'default-secret-key',
   resave: false,
   saveUninitialized: false,
-  cookie: {
-    secure: process.env.NODE_ENV === 'production',
-    httpOnly: true,
-    maxAge: 24 * 60 * 60 * 1000 // 24 hours
-  }
+  cookie: { secure: process.env.NODE_ENV === 'production' }
 }));
-
-// Add logging middleware to see all incoming requests
-app.use((req, res, next) => {
-  // Extract the original path from the request
-  const originalPath = req.headers['x-vercel-deployment-url'] 
-    ? req.url  // In Vercel, the full path is in req.url
-    : req.originalUrl || req.url;
-  
-  console.log(`Request received: ${req.method} ${originalPath}`);
-  console.log('Path info - req.path:', req.path);
-  console.log('URL info - req.url:', req.url);
-  console.log('Original URL info - req.originalUrl:', req.originalUrl);
-  console.log('Headers:', JSON.stringify(req.headers));
-  
-  // Extract the API path for routing
-  if (req.url === '/api' && req.headers['x-forwarded-uri']) {
-    // When deployed on Vercel, the original path is available in x-forwarded-uri
-    const originalUri = req.headers['x-forwarded-uri'];
-    console.log('Rewriting request path from', req.url, 'to', originalUri);
-    req.url = originalUri;
-  }
-  
-  next();
-});
 
 // Health check endpoint
 app.get('/api/health-check', (req, res) => {
-  const envVars = {
-    NODE_ENV: process.env.NODE_ENV || 'not set',
-    DATABASE_URL: process.env.DATABASE_URL ? 'defined' : 'not defined',
-    SESSION_SECRET: process.env.SESSION_SECRET ? 'defined' : 'not defined',
-    VERCEL: process.env.VERCEL || 'not set'
-  };
+  res.json({ status: 'ok', env: process.env.NODE_ENV || 'development' });
+});
+
+// Debug endpoint to show available routes
+app.get('/api/debug/routes', (req, res) => {
+  const availableRoutes = app._router.stack
+    .filter(r => r.route)
+    .map(r => ({ 
+      path: r.route.path, 
+      methods: Object.keys(r.route.methods).join(', ') 
+    }));
   
   res.json({
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development',
-    envVars
+    routes: availableRoutes,
+    count: availableRoutes.length,
+    originalUrl: req.originalUrl,
+    url: req.url,
+    headers: req.headers
   });
 });
 
-// Login endpoint
-app.post('/api/auth/login', async (req, res) => {
-  console.log('Login attempt received');
-  
-  try {
-    const { username, password } = req.body;
-    console.log('Login data received:', { username, password: '[REDACTED]' });
-    
-    if (!username || !password) {
-      console.log('Missing username or password');
-      return res.status(400).json({
-        success: false,
-        error: 'Username and password are required'
-      });
-    }
-    
-    // Connect to database
-    console.log('Connecting to database...');
-    const pool = await connectToDatabase();
-    if (!pool) {
-      console.error('Database connection failed in login endpoint');
-      return res.status(500).json({
-        success: false,
-        error: 'Database connection failed'
-      });
-    }
-    
-    // Query user
-    console.log('Querying for user:', username.toLowerCase());
-    const client = await pool.connect();
-    try {
-      const result = await client.query(
-        'SELECT * FROM users WHERE username = $1',
-        [username.toLowerCase()]
-      );
-      
-      console.log('User query result rows:', result.rows.length);
-      
-      if (result.rows.length === 0) {
-        console.log('User not found:', username);
-        return res.status(401).json({
-          success: false,
-          error: 'Invalid credentials'
-        });
-      }
-      
-      const user = result.rows[0];
-      console.log('User found with ID:', user.id);
-      
-      // In a real application, we'd check the password
-      // For demo purposes, we'll authenticate with any password
-      
-      // Set session data
-      req.session.userId = user.id;
-      req.session.isAuthenticated = true;
-      
-      console.log('Session data set:', {
-        userId: req.session.userId,
-        isAuthenticated: req.session.isAuthenticated
-      });
-      
-      // Return user data without password
-      const { password: _, ...userWithoutPassword } = user;
-      
-      console.log('Login successful for user:', username);
-      return res.json({
-        success: true,
-        user: userWithoutPassword
-      });
-    } catch (dbError) {
-      console.error('Database query error:', {
-        message: dbError.message,
-        stack: dbError.stack,
-        code: dbError.code
-      });
-      return res.status(500).json({
-        success: false,
-        error: 'Database query error',
-        details: dbError.message
-      });
-    } finally {
-      client.release();
-      console.log('Database client released');
-    }
-  } catch (error) {
-    console.error('Login error details:', {
-      message: error.message,
-      stack: error.stack,
-      name: error.name,
-      code: error.code
-    });
-    res.status(500).json({
-      success: false,
-      error: 'Server error',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
-  }
-});
-
-// Auth check endpoint
-app.get('/api/auth/check', async (req, res) => {
-  console.log('Auth check requested');
-  try {
-    console.log('Session state:', {
-      exists: !!req.session,
-      isAuthenticated: req.session?.isAuthenticated,
-      userId: req.session?.userId
-    });
-    
-    if (!req.session || !req.session.isAuthenticated || !req.session.userId) {
-      console.log('No valid session found');
-      return res.status(401).json({
-        success: false,
-        isAuthenticated: false,
-        error: 'Not authenticated'
-      });
-    }
-    
-    // Connect to database
-    console.log('Connecting to database for auth check...');
-    const pool = await connectToDatabase();
-    if (!pool) {
-      console.error('Database connection failed in auth check');
-      return res.status(500).json({
-        success: false,
-        error: 'Database connection failed'
-      });
-    }
-    
-    // Query user
-    console.log('Querying for user ID:', req.session.userId);
-    const client = await pool.connect();
-    try {
-      const result = await client.query(
-        'SELECT * FROM users WHERE id = $1',
-        [req.session.userId]
-      );
-      
-      console.log('User query result rows:', result.rows.length);
-      
-      if (result.rows.length === 0) {
-        console.log('User not found for ID:', req.session.userId);
-        return res.status(401).json({
-          success: false,
-          isAuthenticated: false,
-          error: 'User not found'
-        });
-      }
-      
-      const user = result.rows[0];
-      console.log('User found:', user.username);
-      
-      // Return user data without password
-      const { password: _, ...userWithoutPassword } = user;
-      
-      console.log('Auth check successful for user ID:', user.id);
-      return res.json({
-        success: true,
-        isAuthenticated: true,
-        user: userWithoutPassword
-      });
-    } finally {
-      client.release();
-      console.log('Database client released');
-    }
-  } catch (error) {
-    console.error('Auth check error details:', {
-      message: error.message,
-      stack: error.stack,
-      name: error.name,
-      code: error.code
-    });
-    res.status(500).json({
-      success: false,
-      error: 'Server error',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
-  }
-});
-
-// Logout endpoint
-app.post('/api/auth/logout', (req, res) => {
-  console.log('Logout requested');
-  if (req.session) {
-    req.session.destroy((err) => {
-      if (err) {
-        console.error('Logout error:', err);
-        return res.status(500).json({
-          success: false,
-          error: 'Failed to logout'
-        });
-      }
-      
-      console.log('Logout successful');
-      res.json({
-        success: true,
-        message: 'Logged out successfully'
-      });
-    });
-  } else {
-    console.log('No session found during logout');
-    res.json({
-      success: true,
-      message: 'Already logged out'
-    });
-  }
-});
-
-// Get deals endpoint
-app.get('/api/deals', async (req, res) => {
-  console.log('Deals requested');
-  try {
-    // Connect to database
-    console.log('Connecting to database for deals...');
-    const pool = await connectToDatabase();
-    if (!pool) {
-      console.error('Database connection failed in deals endpoint');
-      return res.status(500).json({
-        success: false,
-        error: 'Database connection failed'
-      });
-    }
-    
-    // Query deals
-    console.log('Querying for deals...');
-    const client = await pool.connect();
-    try {
-      const result = await client.query('SELECT * FROM deals ORDER BY id DESC');
-      console.log('Deals query returned:', result.rows.length, 'rows');
-      return res.json(result.rows);
-    } finally {
-      client.release();
-      console.log('Database client released');
-    }
-  } catch (error) {
-    console.error('Deals fetch error details:', {
-      message: error.message,
-      stack: error.stack,
-      name: error.name,
-      code: error.code
-    });
-    res.status(500).json({
-      success: false,
-      error: 'Server error',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
-  }
-});
-
-// Get a specific deal by ID
-app.get('/api/deals/:id', async (req, res) => {
-  const dealId = req.params.id;
-  console.log(`Deal ${dealId} requested`);
-  
+// Dashboard metrics routes - route handlers for each dashboard metric
+app.get('/api/dashboard/revenue-summary', async (req, res) => {
+  console.log('API: Revenue summary requested');
   try {
     const pool = await connectToDatabase();
     if (!pool) {
-      console.error('Database connection failed');
-      return res.status(500).json({
-        success: false,
-        error: 'Database connection failed'
-      });
+      return res.status(500).json({ error: 'Database connection failed' });
     }
     
     const client = await pool.connect();
     try {
-      const result = await client.query('SELECT * FROM deals WHERE id = $1', [dealId]);
-      
-      if (result.rows.length === 0) {
-        return res.status(404).json({
-          success: false,
-          error: 'Deal not found'
-        });
-      }
-      
-      return res.json(result.rows[0]);
-    } finally {
-      client.release();
-    }
-  } catch (error) {
-    console.error('Deal fetch error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Server error',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
-  }
-});
-
-// Create a new deal
-app.post('/api/deals', async (req, res) => {
-  console.log('Create deal requested');
-  console.log('Request body:', req.body);
-  
-  try {
-    // Validate required fields
-    const { name, amount, stage, customer_id } = req.body;
-    
-    if (!name) {
-      return res.status(400).json({
-        success: false,
-        error: 'Deal name is required'
-      });
-    }
-    
-    // Get userId from session
-    const userId = req.session?.userId;
-    if (!userId) {
-      return res.status(401).json({
-        success: false,
-        error: 'User not authenticated'
-      });
-    }
-    
-    const pool = await connectToDatabase();
-    if (!pool) {
-      console.error('Database connection failed');
-      return res.status(500).json({
-        success: false,
-        error: 'Database connection failed'
-      });
-    }
-    
-    const client = await pool.connect();
-    try {
-      // Get user's team
-      const userResult = await client.query('SELECT team_id FROM users WHERE id = $1', [userId]);
-      const teamId = userResult.rows[0]?.team_id || null;
-      
-      // Insert the new deal
       const result = await client.query(`
-        INSERT INTO deals (
-          name, 
-          amount, 
-          stage, 
-          close_date, 
-          customer_id, 
-          user_id, 
-          team_id, 
-          products, 
-          notes,
-          created_at,
-          updated_at
-        )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
-        RETURNING *
-      `, [
-        name,
-        amount || null,
-        stage || 'prospecting',
-        req.body.close_date || null,
-        customer_id || null,
-        userId,
-        teamId,
-        req.body.products ? JSON.stringify(req.body.products) : null,
-        req.body.notes || null,
-        new Date(),
-        new Date()
-      ]);
-      
-      console.log('Deal created:', result.rows[0]);
-      return res.status(201).json(result.rows[0]);
+        SELECT SUM(amount) as total FROM deals WHERE stage = 'closed_won'
+      `);
+      return res.json({ total: result.rows[0]?.total || 0 });
     } finally {
       client.release();
     }
   } catch (error) {
-    console.error('Deal creation error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Server error',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+    console.error('API Error (revenue-summary):', error);
+    res.status(500).json({ error: 'Server error', details: error.message });
   }
 });
 
-// Update a deal
-app.put('/api/deals/:id', async (req, res) => {
-  const dealId = req.params.id;
-  console.log(`Update deal ${dealId} requested`);
-  console.log('Request body:', req.body);
-  
+app.get('/api/dashboard/pipeline-summary', async (req, res) => {
+  console.log('API: Pipeline summary requested');
   try {
-    // Get userId from session
-    const userId = req.session?.userId;
-    if (!userId) {
-      return res.status(401).json({
-        success: false,
-        error: 'User not authenticated'
-      });
-    }
-    
     const pool = await connectToDatabase();
     if (!pool) {
-      console.error('Database connection failed');
-      return res.status(500).json({
-        success: false,
-        error: 'Database connection failed'
-      });
+      return res.status(500).json({ error: 'Database connection failed' });
     }
     
     const client = await pool.connect();
     try {
-      // Check if deal exists and belongs to user or team
-      const checkResult = await client.query(
-        'SELECT * FROM deals WHERE id = $1',
-        [dealId]
-      );
-      
-      if (checkResult.rows.length === 0) {
-        return res.status(404).json({
-          success: false,
-          error: 'Deal not found'
-        });
-      }
-      
-      // Build the update query dynamically
-      const fields = [
-        'name', 'amount', 'stage', 'close_date', 'customer_id',
-        'products', 'notes', 'updated_at'
-      ];
-      
-      const updates = [];
-      const values = [];
-      let paramIndex = 1;
-      
-      fields.forEach(field => {
-        if (req.body[field] !== undefined) {
-          updates.push(`${field} = $${paramIndex}`);
-          
-          if (field === 'products') {
-            values.push(JSON.stringify(req.body[field]));
-          } else {
-            values.push(req.body[field]);
-          }
-          
-          paramIndex++;
-        }
-      });
-      
-      // Always update the updated_at timestamp
-      if (!updates.includes('updated_at')) {
-        updates.push(`updated_at = $${paramIndex}`);
-        values.push(new Date());
-        paramIndex++;
-      }
-      
-      if (updates.length === 0) {
-        return res.status(400).json({
-          success: false,
-          error: 'No fields to update'
-        });
-      }
-      
-      // Add the deal ID as the last parameter
-      values.push(dealId);
-      
-      const updateQuery = `
-        UPDATE deals
-        SET ${updates.join(', ')}
-        WHERE id = $${paramIndex}
-        RETURNING *
-      `;
-      
-      const updateResult = await client.query(updateQuery, values);
-      
-      console.log('Deal updated:', updateResult.rows[0]);
-      return res.json(updateResult.rows[0]);
+      const result = await client.query(`
+        SELECT SUM(amount) as total FROM deals WHERE stage NOT IN ('closed_won', 'closed_lost')
+      `);
+      return res.json({ total: result.rows[0]?.total || 0 });
     } finally {
       client.release();
     }
   } catch (error) {
-    console.error('Deal update error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Server error',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+    console.error('API Error (pipeline-summary):', error);
+    res.status(500).json({ error: 'Server error', details: error.message });
   }
 });
 
-// Get all customers
-app.get('/api/customers', async (req, res) => {
-  console.log('Customers requested');
-  
+app.get('/api/dashboard/sales-leader', async (req, res) => {
+  console.log('API: Sales leader requested');
   try {
     const pool = await connectToDatabase();
     if (!pool) {
-      console.error('Database connection failed');
-      return res.status(500).json({
-        success: false,
-        error: 'Database connection failed'
-      });
+      return res.status(500).json({ error: 'Database connection failed' });
     }
     
     const client = await pool.connect();
     try {
-      const result = await client.query('SELECT * FROM customers ORDER BY name');
-      console.log(`Returning ${result.rows.length} customers`);
+      const result = await client.query(`
+        SELECT u.id, u.name, COUNT(d.id) as deals_count, SUM(d.amount) as amount
+        FROM users u
+        LEFT JOIN deals d ON u.id = d.user_id AND d.stage = 'closed_won'
+        GROUP BY u.id, u.name
+        ORDER BY COALESCE(SUM(d.amount), 0) DESC
+        LIMIT 1
+      `);
+      return res.json(result.rows.length > 0 ? result.rows[0] : {});
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    console.error('API Error (sales-leader):', error);
+    res.status(500).json({ error: 'Server error', details: error.message });
+  }
+});
+
+app.get('/api/dashboard/leaderboard', async (req, res) => {
+  console.log('API: Leaderboard requested');
+  try {
+    const pool = await connectToDatabase();
+    if (!pool) {
+      return res.status(500).json({ error: 'Database connection failed' });
+    }
+    
+    const client = await pool.connect();
+    try {
+      const result = await client.query(`
+        SELECT u.id, u.name, COUNT(d.id) as deals_count, SUM(d.amount) as amount
+        FROM users u
+        LEFT JOIN deals d ON u.id = d.user_id AND d.stage = 'closed_won'
+        GROUP BY u.id, u.name
+        ORDER BY COALESCE(SUM(d.amount), 0) DESC
+        LIMIT 5
+      `);
       return res.json(result.rows);
     } finally {
       client.release();
     }
   } catch (error) {
-    console.error('Customers fetch error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Server error',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+    console.error('API Error (leaderboard):', error);
+    res.status(500).json({ error: 'Server error', details: error.message });
   }
 });
 
-// Main dashboard endpoint
-app.get('/api/dashboard', async (req, res) => {
-  console.log('Main dashboard data requested');
-  
+app.get('/api/dashboard/win-rate', async (req, res) => {
+  console.log('API: Win rate requested');
   try {
     const pool = await connectToDatabase();
     if (!pool) {
-      console.error('Database connection failed');
-      return res.status(500).json({
-        success: false,
-        error: 'Database connection failed'
-      });
+      return res.status(500).json({ error: 'Database connection failed' });
     }
     
     const client = await pool.connect();
     try {
-      // Get total revenue (sum of closed won deals)
-      const revenueResult = await client.query(`
-        SELECT SUM(amount) as total
+      const result = await client.query(`
+        SELECT 
+          COUNT(CASE WHEN stage IN ('closed_won', 'closed_lost') THEN 1 END) as closed_deals,
+          COUNT(CASE WHEN stage = 'closed_won' THEN 1 END) as won_deals
+        FROM deals
+      `);
+      const data = result.rows[0];
+      const winRate = data.closed_deals > 0 ? (data.won_deals / data.closed_deals) * 100 : 0;
+      return res.json({
+        rate: winRate,
+        closedDeals: data.closed_deals,
+        wonDeals: data.won_deals
+      });
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    console.error('API Error (win-rate):', error);
+    res.status(500).json({ error: 'Server error', details: error.message });
+  }
+});
+
+app.get('/api/dashboard/conversion-rate', async (req, res) => {
+  console.log('API: Conversion rate requested');
+  try {
+    const pool = await connectToDatabase();
+    if (!pool) {
+      return res.status(500).json({ error: 'Database connection failed' });
+    }
+    
+    const client = await pool.connect();
+    try {
+      const result = await client.query(`
+        SELECT 
+          COUNT(CASE WHEN stage IN ('closed_won', 'closed_lost') THEN 1 END) as closed_deals,
+          COUNT(*) as total_deals
+        FROM deals
+      `);
+      const data = result.rows[0];
+      const conversionRate = data.total_deals > 0 ? (data.closed_deals / data.total_deals) * 100 : 0;
+      return res.json({
+        rate: conversionRate,
+        totalDeals: data.total_deals,
+        closedDeals: data.closed_deals
+      });
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    console.error('API Error (conversion-rate):', error);
+    res.status(500).json({ error: 'Server error', details: error.message });
+  }
+});
+
+app.get('/api/dashboard/revenue-trend', async (req, res) => {
+  console.log('API: Revenue trend requested');
+  try {
+    const pool = await connectToDatabase();
+    if (!pool) {
+      return res.status(500).json({ error: 'Database connection failed' });
+    }
+    
+    const client = await pool.connect();
+    try {
+      const result = await client.query(`
+        SELECT 
+          TO_CHAR(DATE_TRUNC('month', created_at), 'YYYY-MM') as month,
+          SUM(amount) as total
         FROM deals
         WHERE stage = 'closed_won'
+        GROUP BY DATE_TRUNC('month', created_at)
+        ORDER BY DATE_TRUNC('month', created_at) ASC
+        LIMIT 12
+      `);
+      return res.json(result.rows);
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    console.error('API Error (revenue-trend):', error);
+    res.status(500).json({ error: 'Server error', details: error.message });
+  }
+});
+
+app.get('/api/dashboard/pipeline-distribution', async (req, res) => {
+  console.log('API: Pipeline distribution requested');
+  try {
+    const pool = await connectToDatabase();
+    if (!pool) {
+      return res.status(500).json({ error: 'Database connection failed' });
+    }
+    
+    const client = await pool.connect();
+    try {
+      const result = await client.query(`
+        SELECT stage, COUNT(*) as count, SUM(amount) as amount
+        FROM deals
+        WHERE stage NOT IN ('closed_won', 'closed_lost')
+        GROUP BY stage
+        ORDER BY amount DESC
+      `);
+      return res.json(result.rows);
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    console.error('API Error (pipeline-distribution):', error);
+    res.status(500).json({ error: 'Server error', details: error.message });
+  }
+});
+
+app.get('/api/dashboard/gp-summary', async (req, res) => {
+  console.log('API: GP summary requested');
+  try {
+    const pool = await connectToDatabase();
+    if (!pool) {
+      return res.status(500).json({ error: 'Database connection failed' });
+    }
+    
+    const client = await pool.connect();
+    try {
+      const result = await client.query(`
+        SELECT SUM(amount) as total FROM deals WHERE stage = 'closed_won'
+      `);
+      const revenue = result.rows[0]?.total || 0;
+      const margin = 0.4;
+      return res.json({
+        revenue: revenue,
+        grossProfit: revenue * margin,
+        margin: margin
+      });
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    console.error('API Error (gp-summary):', error);
+    res.status(500).json({ error: 'Server error', details: error.message });
+  }
+});
+
+app.get('/api/dashboard/quota-completion', async (req, res) => {
+  console.log('API: Quota completion requested');
+  try {
+    const pool = await connectToDatabase();
+    if (!pool) {
+      return res.status(500).json({ error: 'Database connection failed' });
+    }
+    
+    const client = await pool.connect();
+    try {
+      const result = await client.query(`
+        SELECT SUM(amount) as total
+        FROM deals
+        WHERE stage = 'closed_won' AND
+        created_at >= DATE_TRUNC('month', CURRENT_DATE) AND
+        created_at < DATE_TRUNC('month', CURRENT_DATE) + INTERVAL '1 month'
+      `);
+      const quota = 1000000;
+      const current = result.rows[0]?.total || 0;
+      return res.json({
+        quota: quota,
+        current: current,
+        completion: (current / quota) * 100
+      });
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    console.error('API Error (quota-completion):', error);
+    res.status(500).json({ error: 'Server error', details: error.message });
+  }
+});
+
+app.get('/api/dashboard/avg-deal-size', async (req, res) => {
+  console.log('API: Average deal size requested');
+  try {
+    const pool = await connectToDatabase();
+    if (!pool) {
+      return res.status(500).json({ error: 'Database connection failed' });
+    }
+    
+    const client = await pool.connect();
+    try {
+      const result = await client.query(`
+        SELECT AVG(amount) as avg_amount FROM deals WHERE amount > 0
+      `);
+      return res.json({
+        averageDealSize: result.rows[0]?.avg_amount || 0
+      });
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    console.error('API Error (avg-deal-size):', error);
+    res.status(500).json({ error: 'Server error', details: error.message });
+  }
+});
+
+app.get('/api/pipeline', async (req, res) => {
+  console.log('API: Pipeline data requested');
+  try {
+    const pool = await connectToDatabase();
+    if (!pool) {
+      return res.status(500).json({ error: 'Database connection failed' });
+    }
+    
+    const client = await pool.connect();
+    try {
+      const result = await client.query(`
+        SELECT 
+          stage, 
+          COUNT(*) as deal_count, 
+          SUM(amount) as total_amount
+        FROM deals
+        WHERE stage NOT IN ('closed_won', 'closed_lost')
+        GROUP BY stage
+        ORDER BY CASE 
+          WHEN stage = 'prospecting' THEN 1
+          WHEN stage = 'qualification' THEN 2
+          WHEN stage = 'proposal' THEN 3
+          WHEN stage = 'negotiation' THEN 4
+          ELSE 5
+        END
       `);
       
-      // Get pipeline value (sum of all open deals)
-      const pipelineResult = await client.query(`
+      const totalResult = await client.query(`
         SELECT SUM(amount) as total
         FROM deals
         WHERE stage NOT IN ('closed_won', 'closed_lost')
       `);
       
-      // Get deal stages counts
-      const stagesResult = await client.query(`
-        SELECT stage, COUNT(*) as count, SUM(amount) as amount
-        FROM deals
-        GROUP BY stage
-      `);
+      return res.json({
+        stages: result.rows,
+        total: totalResult.rows[0]?.total || 0
+      });
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    console.error('API Error (pipeline):', error);
+    res.status(500).json({ error: 'Server error', details: error.message });
+  }
+});
+
+// Version endpoint
+app.get('/api/version', (req, res) => {
+  res.json({
+    version: '1.1.0',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
+
+// Auth endpoints
+app.post('/api/auth/login', async (req, res) => {
+  console.log('API: Login attempt');
+  const { email, password } = req.body;
+  
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Email and password required' });
+  }
+  
+  try {
+    const pool = await connectToDatabase();
+    if (!pool) {
+      return res.status(500).json({ error: 'Database connection failed' });
+    }
+    
+    const client = await pool.connect();
+    try {
+      const result = await client.query('SELECT * FROM users WHERE email = $1', [email]);
       
-      // Get top performers
-      const topPerformersResult = await client.query(`
-        SELECT u.id, u.name, COUNT(d.id) as deals_count, SUM(d.amount) as amount
-        FROM users u
-        LEFT JOIN deals d ON u.id = d.user_id AND d.stage = 'closed_won'
-        GROUP BY u.id, u.name
-        ORDER BY amount DESC NULLS LAST
-        LIMIT 5
-      `);
+      if (result.rows.length === 0) {
+        return res.status(401).json({ error: 'Invalid credentials' });
+      }
       
-      // Get recent deals
-      const recentDealsResult = await client.query(`
+      const user = result.rows[0];
+      
+      // For simplicity in demo, just check if the password is the same
+      // In production, use bcrypt.compare
+      if (password === user.password) {
+        // Store user in session
+        req.session.user = {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role || 'user'
+        };
+        
+        return res.json({
+          success: true,
+          user: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role || 'user'
+          }
+        });
+      } else {
+        return res.status(401).json({ error: 'Invalid credentials' });
+      }
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    console.error('API Error (login):', error);
+    res.status(500).json({ error: 'Server error', details: error.message });
+  }
+});
+
+app.get('/api/auth/check', (req, res) => {
+  console.log('API: Auth check');
+  if (req.session && req.session.user) {
+    return res.json({
+      authenticated: true,
+      user: req.session.user
+    });
+  } else {
+    return res.json({
+      authenticated: false
+    });
+  }
+});
+
+// Deals endpoints
+app.get('/api/deals', async (req, res) => {
+  console.log('API: Get all deals');
+  try {
+    const pool = await connectToDatabase();
+    if (!pool) {
+      return res.status(500).json({ error: 'Database connection failed' });
+    }
+    
+    const client = await pool.connect();
+    try {
+      const result = await client.query(`
         SELECT d.*, c.name as customer_name, u.name as user_name
         FROM deals d
         LEFT JOIN customers c ON d.customer_id = c.id
         LEFT JOIN users u ON d.user_id = u.id
         ORDER BY d.created_at DESC
-        LIMIT 5
       `);
       
-      // Calculate conversion rates
-      const conversionResult = await client.query(`
-        SELECT 
-          COUNT(CASE WHEN stage IN ('closed_won', 'closed_lost') THEN 1 END) as closed_deals,
-          COUNT(CASE WHEN stage = 'closed_won' THEN 1 END) as won_deals,
-          COUNT(*) as total_deals
-        FROM deals
-      `);
-      
-      const conversion = conversionResult.rows[0];
-      const winRate = conversion.closed_deals > 0 
-        ? (conversion.won_deals / conversion.closed_deals) * 100 
-        : 0;
-      
-      const conversionRate = conversion.total_deals > 0 
-        ? (conversion.closed_deals / conversion.total_deals) * 100 
-        : 0;
-      
-      // Return all dashboard data
-      return res.json({
-        revenue: revenueResult.rows[0].total || 0,
-        pipeline: pipelineResult.rows[0].total || 0,
-        stages: stagesResult.rows,
-        topPerformers: topPerformersResult.rows,
-        recentDeals: recentDealsResult.rows,
-        conversionRate,
-        winRate
-      });
+      return res.json(result.rows);
     } finally {
       client.release();
     }
   } catch (error) {
-    console.error('Dashboard data fetch error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Server error',
-      details: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+    console.error('API Error (get deals):', error);
+    res.status(500).json({ error: 'Server error', details: error.message });
   }
 });
 
-// Also handle pipeline endpoint
-app.all('*', async (req, res, next) => {
-  // Check if this is the pipeline endpoint
-  if (req.url.includes('/api/pipeline')) {
-    console.log('Pipeline data requested via universal handler');
-    try {
-      const pool = await connectToDatabase();
-      if (!pool) {
-        return res.status(500).json({ error: 'Database connection failed' });
-      }
-      
-      const client = await pool.connect();
-      try {
-        const result = await client.query(`
-          SELECT 
-            stage, 
-            COUNT(*) as deal_count, 
-            SUM(amount) as total_amount
-          FROM deals
-          WHERE stage NOT IN ('closed_won', 'closed_lost')
-          GROUP BY stage
-          ORDER BY CASE 
-            WHEN stage = 'prospecting' THEN 1
-            WHEN stage = 'qualification' THEN 2
-            WHEN stage = 'proposal' THEN 3
-            WHEN stage = 'negotiation' THEN 4
-            ELSE 5
-          END
-        `);
-        
-        const totalResult = await client.query(`
-          SELECT SUM(amount) as total
-          FROM deals
-          WHERE stage NOT IN ('closed_won', 'closed_lost')
-        `);
-        
-        return res.json({
-          stages: result.rows,
-          total: totalResult.rows[0].total || 0
-        });
-      } finally {
-        client.release();
-      }
-    } catch (error) {
-      console.error('Pipeline data error:', error);
-      res.status(500).json({ error: 'Server error' });
-    }
-    return;
+app.post('/api/deals', async (req, res) => {
+  console.log('API: Create deal');
+  const { name, amount, customer_id, user_id, stage } = req.body;
+  
+  if (!name || !amount || !customer_id || !user_id) {
+    return res.status(400).json({ error: 'Missing required fields' });
   }
   
-  next();
-});
-
-// Debug endpoint to list all registered routes
-app.get('/api/debug/routes', (req, res) => {
-  console.log('Debug routes requested');
-  
   try {
-    const routes = [];
-    
-    // Get all registered routes
-    app._router.stack.forEach((middleware) => {
-      if (middleware.route) {
-        // Routes registered directly on the app
-        routes.push({
-          path: middleware.route.path,
-          method: Object.keys(middleware.route.methods)[0].toUpperCase()
-        });
-      } else if (middleware.name === 'router') {
-        // Routes added via a router
-        middleware.handle.stack.forEach((handler) => {
-          if (handler.route) {
-            routes.push({
-              path: handler.route.path,
-              method: Object.keys(handler.route.methods)[0].toUpperCase()
-            });
-          }
-        });
-      }
-    });
-    
-    return res.json({
-      routes: routes,
-      count: routes.length,
-      baseUrl: req.protocol + '://' + req.get('host'),
-      nodeEnv: process.env.NODE_ENV || 'not set'
-    });
-  } catch (error) {
-    console.error('Debug routes error:', error);
-    res.status(500).json({ 
-      error: 'Server error',
-      message: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
-    });
-  }
-});
-
-// Also add a version endpoint to check which version is deployed
-app.get('/api/version', (req, res) => {
-  res.json({
-    version: '1.0.1',
-    deployTimestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'not set'
-  });
-});
-
-// Database test endpoint
-app.get('/api/db-direct-test', async (req, res) => {
-  console.log('Database direct test requested');
-  try {
-    console.log('Testing database connection...');
     const pool = await connectToDatabase();
     if (!pool) {
-      console.error('Database connection failed in direct test');
-      return res.status(500).json({
-        success: false,
-        error: 'Database connection failed'
-      });
+      return res.status(500).json({ error: 'Database connection failed' });
     }
     
-    console.log('Running test query...');
     const client = await pool.connect();
     try {
-      const result = await client.query('SELECT NOW() as time');
-      console.log('Test query successful:', result.rows[0]);
-      res.json({
-        success: true,
-        message: 'Database connection successful',
-        time: result.rows[0].time,
-        database_url: process.env.DATABASE_URL ? 'Configured' : 'Not configured'
-      });
+      const result = await client.query(`
+        INSERT INTO deals (name, amount, customer_id, user_id, stage, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
+        RETURNING *
+      `, [name, amount, customer_id, user_id, stage || 'prospecting']);
+      
+      return res.status(201).json(result.rows[0]);
     } finally {
       client.release();
-      console.log('Database client released');
     }
   } catch (error) {
-    console.error('Database test error details:', {
-      message: error.message,
-      stack: error.stack,
-      name: error.name,
-      code: error.code
-    });
-    res.status(500).json({
-      success: false,
-      error: error.message || 'Unknown error',
-      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
-    });
+    console.error('API Error (create deal):', error);
+    res.status(500).json({ error: 'Server error', details: error.message });
   }
 });
 
-// Environment variables endpoint
-app.get('/api/env-check', (req, res) => {
-  const safeEnvVars = {
-    NODE_ENV: process.env.NODE_ENV || 'not set',
-    DATABASE_URL: process.env.DATABASE_URL ? 'defined' : 'not defined',
-    SESSION_SECRET: process.env.SESSION_SECRET ? 'defined' : 'not defined',
-    VERCEL: process.env.VERCEL || 'not set',
-    VERCEL_REGION: process.env.VERCEL_REGION || 'not set',
-    VERCEL_URL: process.env.VERCEL_URL || 'not set'
-  };
-  
-  res.json({
-    environment: safeEnvVars,
-    timestamp: new Date().toISOString()
-  });
-});
-
-// Fallback route
+// Fallback route for 404s
 app.use('*', (req, res) => {
-  console.log(`404 NOT FOUND: ${req.originalUrl}`);
-  
-  // Log all request info for debugging
-  const requestInfo = {
-    url: req.originalUrl,
+  console.log(`API 404: ${req.method} ${req.originalUrl}`);
+  res.status(404).json({ 
+    error: 'Not found',
+    endpoint: req.originalUrl,
     method: req.method,
-    headers: req.headers,
-    query: req.query,
-    params: req.params,
-    body: req.body,
-    path: req.path,
     timestamp: new Date().toISOString()
-  };
-  
-  console.log('Request info:', JSON.stringify(requestInfo));
-  
-  res.status(404).json({
-    error: 'Not Found',
-    message: `Could not find ${req.originalUrl}. This URL has been logged for debugging.`,
-    requestedUrl: req.originalUrl,
-    availableApis: ['/api/dashboard', '/api/deals', '/api/auth/login', '/api/debug/routes', '/api/version']
   });
 });
 
-// Start the server
-const port = process.env.PORT || 3000;
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('API Error:', err);
+  res.status(err.status || 500).json({
+    error: err.message || 'Internal server error',
+    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+  });
 });
 
-// Export for Vercel serverless functions
-module.exports = (req, res) => {
-  // Log request for debugging
-  console.log(`[${new Date().toISOString()}] Received request: ${req.method} ${req.url}`);
-  
-  // Pass the request to the Express app
-  return app(req, res);
-}; 
+// Set up the server if not running as a serverless function
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
+
+// Export for serverless
+module.exports = app; 
