@@ -1222,7 +1222,7 @@ router.get('/pipeline', authenticateUser, async (req, res) => {
         user: {
           id: userInfo.id,
           name: userInfo.name,
-          avatar: userInfo.avatar || '/avatars/default.png',
+          avatar: userInfo.avatar || null,
           isChannelPartner: userInfo.is_channel_partner || false
         },
         customer: {
