@@ -276,5 +276,11 @@ app.use('*', (req, res) => {
   });
 });
 
-// Export for Vercel
-module.exports = app; 
+// Export for Vercel serverless functions
+module.exports = (req, res) => {
+  // Log request for debugging
+  console.log(`[${new Date().toISOString()}] Received request: ${req.method} ${req.url}`);
+  
+  // Pass the request to the Express app
+  return app(req, res);
+}; 
