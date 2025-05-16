@@ -1,51 +1,33 @@
 {
   "version": 2,
-  "outputDirectory": "public",
-  "functions": {
-    "api/**/*.js": {
-      "memory": 1024,
-      "maxDuration": 10
-    }
-  },
+  "builds": [
+    { "src": "public/**", "use": "@vercel/static" },
+    { "src": "api/*.js", "use": "@vercel/node" }
+  ],
   "routes": [
-    {
-      "src": "/api/dashboard",
-      "dest": "/api/dashboard-api.js"
-    },
     {
       "src": "/api/dashboard/(.*)",
       "dest": "/api/dashboard-api.js"
-    },
-    {
-      "src": "/api/deals",
-      "dest": "/api/deals-api.js"
-    },
-    {
-      "src": "/api/deals/(.*)",
-      "dest": "/api/deals-api.js"
-    },
-    {
-      "src": "/api/auth",
-      "dest": "/api/auth-api.js"
     },
     {
       "src": "/api/auth/(.*)",
       "dest": "/api/auth-api.js"
     },
     {
-      "src": "/api",
-      "dest": "/api/index.js"
+      "src": "/api/deals/(.*)",
+      "dest": "/api/deals-api.js"
     },
     {
       "src": "/api/(.*)",
       "dest": "/api/index.js"
     },
     {
-      "handle": "filesystem"
+      "src": "/(.*)",
+      "dest": "/public/$1"
     },
     {
-      "src": "/.*",
-      "dest": "/index.html"
+      "src": "/(.*)",
+      "dest": "/public/index.html"
     }
   ]
 } 
