@@ -700,6 +700,425 @@ app.get('/api/dashboard', async (req, res) => {
   }
 });
 
+// Add specific dashboard endpoints to match client requests
+
+// Revenue Summary - total closed deals amount
+app.get('/api/dashboard/revenue-summary', async (req, res) => {
+  console.log('Revenue summary requested');
+  try {
+    const pool = await connectToDatabase();
+    if (!pool) {
+      return res.status(500).json({ error: 'Database connection failed' });
+    }
+    
+    const client = await pool.connect();
+    try {
+      const result = await client.query(`
+        SELECT SUM(amount) as total
+        FROM deals
+        WHERE stage = 'closed_won'
+      `);
+      
+      // Calculate monthly trend
+      const trendResult = await client.query(`
+        SELECT 
+          TO_CHAR(DATE_TRUNC('month', close_date), 'YYYY-MM') as month,
+          SUM(amount) as total
+        FROM deals
+        WHERE stage = 'closed_won' AND close_date IS NOT NULL
+        GROUP BY DATE_TRUNC('month', close_date)
+        ORDER BY DATE_TRUNC('month', close_date) DESC
+        LIMIT 6
+      `);
+      
+      return res.json({
+        total: result.rows[0].total || 0,
+        trend: trendResult.rows
+      });
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    console.error('Revenue summary error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Pipeline Summary - total value of deals in pipeline
+app.get('/api/dashboard/pipeline-summary', async (req, res) => {
+  console.log('Pipeline summary requested');
+  try {
+    const pool = await connectToDatabase();
+    if (!pool) {
+      return res.status(500).json({ error: 'Database connection failed' });
+    }
+    
+    const client = await pool.connect();
+    try {
+      const result = await client.query(`
+        SELECT SUM(amount) as total
+        FROM deals
+        WHERE stage NOT IN ('closed_won', 'closed_lost')
+      `);
+      
+      return res.json({
+        total: result.rows[0].total || 0
+      });
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    console.error('Pipeline summary error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Pipeline distribution - deals by stage
+app.get('/api/dashboard/pipeline-distribution', async (req, res) => {
+  console.log('Pipeline distribution requested');
+  try {
+    const pool = await connectToDatabase();
+    if (!pool) {
+      return res.status(500).json({ error: 'Database connection failed' });
+    }
+    
+    const client = await pool.connect();
+    try {
+      const result = await client.query(`
+        SELECT stage, COUNT(*) as count, SUM(amount) as amount
+        FROM deals
+        WHERE stage NOT IN ('closed_won', 'closed_lost')
+        GROUP BY stage
+        ORDER BY amount DESC
+      `);
+      
+      return res.json(result.rows);
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    console.error('Pipeline distribution error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Sales Leader - top performing sales rep
+app.get('/api/dashboard/sales-leader', async (req, res) => {
+  console.log('Sales leader requested');
+  try {
+    const pool = await connectToDatabase();
+    if (!pool) {
+      return res.status(500).json({ error: 'Database connection failed' });
+    }
+    
+    const client = await pool.connect();
+    try {
+      const result = await client.query(`
+        SELECT u.id, u.name, COUNT(d.id) as deals_count, SUM(d.amount) as amount
+        FROM users u
+        LEFT JOIN deals d ON u.id = d.user_id AND d.stage = 'closed_won'
+        GROUP BY u.id, u.name
+        ORDER BY amount DESC NULLS LAST
+        LIMIT 1
+      `);
+      
+      return res.json(result.rows.length > 0 ? result.rows[0] : {});
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    console.error('Sales leader error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Leaderboard - top performing sales reps
+app.get('/api/dashboard/leaderboard', async (req, res) => {
+  console.log('Leaderboard requested');
+  try {
+    const pool = await connectToDatabase();
+    if (!pool) {
+      return res.status(500).json({ error: 'Database connection failed' });
+    }
+    
+    const client = await pool.connect();
+    try {
+      const result = await client.query(`
+        SELECT u.id, u.name, COUNT(d.id) as deals_count, SUM(d.amount) as amount
+        FROM users u
+        LEFT JOIN deals d ON u.id = d.user_id AND d.stage = 'closed_won'
+        GROUP BY u.id, u.name
+        ORDER BY amount DESC NULLS LAST
+        LIMIT 5
+      `);
+      
+      return res.json(result.rows);
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    console.error('Leaderboard error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Win Rate - percentage of closed deals that were won
+app.get('/api/dashboard/win-rate', async (req, res) => {
+  console.log('Win rate requested');
+  try {
+    const pool = await connectToDatabase();
+    if (!pool) {
+      return res.status(500).json({ error: 'Database connection failed' });
+    }
+    
+    const client = await pool.connect();
+    try {
+      const result = await client.query(`
+        SELECT 
+          COUNT(CASE WHEN stage IN ('closed_won', 'closed_lost') THEN 1 END) as closed_deals,
+          COUNT(CASE WHEN stage = 'closed_won' THEN 1 END) as won_deals
+        FROM deals
+      `);
+      
+      const data = result.rows[0];
+      const winRate = data.closed_deals > 0 
+        ? (data.won_deals / data.closed_deals) * 100 
+        : 0;
+      
+      return res.json({
+        rate: winRate,
+        closedDeals: data.closed_deals,
+        wonDeals: data.won_deals
+      });
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    console.error('Win rate error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Conversion Rate - percentage of total deals that reached closed stage
+app.get('/api/dashboard/conversion-rate', async (req, res) => {
+  console.log('Conversion rate requested');
+  try {
+    const pool = await connectToDatabase();
+    if (!pool) {
+      return res.status(500).json({ error: 'Database connection failed' });
+    }
+    
+    const client = await pool.connect();
+    try {
+      const result = await client.query(`
+        SELECT 
+          COUNT(CASE WHEN stage IN ('closed_won', 'closed_lost') THEN 1 END) as closed_deals,
+          COUNT(*) as total_deals
+        FROM deals
+      `);
+      
+      const data = result.rows[0];
+      const conversionRate = data.total_deals > 0 
+        ? (data.closed_deals / data.total_deals) * 100 
+        : 0;
+      
+      return res.json({
+        rate: conversionRate,
+        totalDeals: data.total_deals,
+        closedDeals: data.closed_deals
+      });
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    console.error('Conversion rate error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Revenue Trend - monthly revenue over time
+app.get('/api/dashboard/revenue-trend', async (req, res) => {
+  console.log('Revenue trend requested');
+  try {
+    const pool = await connectToDatabase();
+    if (!pool) {
+      return res.status(500).json({ error: 'Database connection failed' });
+    }
+    
+    const client = await pool.connect();
+    try {
+      // For Postgres, use DATE_TRUNC and TO_CHAR
+      const result = await client.query(`
+        SELECT 
+          TO_CHAR(DATE_TRUNC('month', created_at), 'YYYY-MM') as month,
+          SUM(amount) as total
+        FROM deals
+        WHERE stage = 'closed_won'
+        GROUP BY DATE_TRUNC('month', created_at)
+        ORDER BY DATE_TRUNC('month', created_at) ASC
+        LIMIT 12
+      `);
+      
+      return res.json(result.rows);
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    console.error('Revenue trend error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// GP Summary - gross profit summary (assuming 40% margin for simplicity)
+app.get('/api/dashboard/gp-summary', async (req, res) => {
+  console.log('GP summary requested');
+  try {
+    const pool = await connectToDatabase();
+    if (!pool) {
+      return res.status(500).json({ error: 'Database connection failed' });
+    }
+    
+    const client = await pool.connect();
+    try {
+      const result = await client.query(`
+        SELECT SUM(amount) as total
+        FROM deals
+        WHERE stage = 'closed_won'
+      `);
+      
+      const revenue = result.rows[0].total || 0;
+      const margin = 0.4; // 40% margin for simplicity
+      const grossProfit = revenue * margin;
+      
+      return res.json({
+        revenue: revenue,
+        grossProfit: grossProfit,
+        margin: margin
+      });
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    console.error('GP summary error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Quota Completion - percentage of sales target reached
+app.get('/api/dashboard/quota-completion', async (req, res) => {
+  console.log('Quota completion requested');
+  try {
+    const pool = await connectToDatabase();
+    if (!pool) {
+      return res.status(500).json({ error: 'Database connection failed' });
+    }
+    
+    const client = await pool.connect();
+    try {
+      // Get current month's revenue
+      const result = await client.query(`
+        SELECT SUM(amount) as total
+        FROM deals
+        WHERE 
+          stage = 'closed_won' AND
+          close_date >= DATE_TRUNC('month', CURRENT_DATE) AND
+          close_date < DATE_TRUNC('month', CURRENT_DATE) + INTERVAL '1 month'
+      `);
+      
+      const currentRevenue = result.rows[0].total || 0;
+      const quota = 1000000; // Example quota: $1M
+      const completion = (currentRevenue / quota) * 100;
+      
+      return res.json({
+        quota: quota,
+        current: currentRevenue,
+        completion: completion
+      });
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    console.error('Quota completion error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Average Deal Size
+app.get('/api/dashboard/avg-deal-size', async (req, res) => {
+  console.log('Average deal size requested');
+  try {
+    const pool = await connectToDatabase();
+    if (!pool) {
+      return res.status(500).json({ error: 'Database connection failed' });
+    }
+    
+    const client = await pool.connect();
+    try {
+      const result = await client.query(`
+        SELECT AVG(amount) as avg_amount
+        FROM deals
+        WHERE amount > 0
+      `);
+      
+      return res.json({
+        averageDealSize: result.rows[0].avg_amount || 0
+      });
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    console.error('Average deal size error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Pipeline endpoint for total pipeline
+app.get('/api/pipeline', async (req, res) => {
+  console.log('Pipeline data requested');
+  try {
+    const pool = await connectToDatabase();
+    if (!pool) {
+      return res.status(500).json({ error: 'Database connection failed' });
+    }
+    
+    const client = await pool.connect();
+    try {
+      const result = await client.query(`
+        SELECT 
+          stage, 
+          COUNT(*) as deal_count, 
+          SUM(amount) as total_amount
+        FROM deals
+        WHERE stage NOT IN ('closed_won', 'closed_lost')
+        GROUP BY stage
+        ORDER BY CASE 
+          WHEN stage = 'prospecting' THEN 1
+          WHEN stage = 'qualification' THEN 2
+          WHEN stage = 'proposal' THEN 3
+          WHEN stage = 'negotiation' THEN 4
+          ELSE 5
+        END
+      `);
+      
+      const totalResult = await client.query(`
+        SELECT SUM(amount) as total
+        FROM deals
+        WHERE stage NOT IN ('closed_won', 'closed_lost')
+      `);
+      
+      return res.json({
+        stages: result.rows,
+        total: totalResult.rows[0].total || 0
+      });
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    console.error('Pipeline data error:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // Database test endpoint
 app.get('/api/db-direct-test', async (req, res) => {
   console.log('Database direct test requested');
