@@ -6,6 +6,9 @@ const session = require('express-session');
 const bcrypt = require('bcrypt');
 const dotenv = require('dotenv');
 
+// Add import for session store
+const MemoryStore = require('memorystore')(session);
+
 // Debug info - print environment when module loads
 console.log('API initialization - Environment:', {
   NODE_ENV: process.env.NODE_ENV || 'not set',
@@ -53,7 +56,11 @@ app.use(session({
   secret: process.env.SESSION_SECRET || 'default-secret-key',
   resave: false,
   saveUninitialized: false,
-  cookie: { secure: process.env.NODE_ENV === 'production' }
+  cookie: { secure: process.env.NODE_ENV === 'production' },
+  // Replace default MemoryStore with memorystore package that has auto-pruning
+  store: new MemoryStore({
+    checkPeriod: 86400000 // prune expired entries every 24h
+  })
 }));
 
 // Health check endpoint
