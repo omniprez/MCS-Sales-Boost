@@ -46,6 +46,65 @@
             background-color: #1d4ed8;
         }
     </style>
+    <!-- Add direct API fix script -->
+    <script>
+        // This script provides direct access to the dashboard API
+        // It's embedded in the HTML to ensure it's always available
+        window.addEventListener('DOMContentLoaded', function() {
+            // Create a script element that can be added to any page
+            const script = document.createElement('script');
+            script.textContent = `
+                // Dashboard API direct access fix
+                (function() {
+                    console.log('Installing dashboard API direct access fix...');
+                    
+                    // Store the original fetch function
+                    const originalFetch = window.fetch;
+                    
+                    // Replace fetch with our custom implementation
+                    window.fetch = function(url, options) {
+                        // Only intercept dashboard API requests
+                        if (typeof url === 'string' && (url.includes('/api/dashboard/') || url.includes('/api/pipeline'))) {
+                            console.log('Intercepting API request:', url);
+                            
+                            // Fix common path issues by ensuring paths are properly formatted
+                            let newUrl = url;
+                            
+                            // Remove any duplicate /api segments
+                            newUrl = newUrl.replace(/\\/api\\/api\\//g, '/api/');
+                            
+                            // For dashboard endpoints, ensure they're properly structured
+                            if (newUrl.includes('/dashboard/')) {
+                                const endpoint = newUrl.split('/dashboard/')[1].split('?')[0];
+                                newUrl = '/api/dashboard/' + endpoint;
+                            }
+                            
+                            console.log('Modified URL:', newUrl);
+                            
+                            // Now make the fetch with the fixed URL
+                            return originalFetch(newUrl, options)
+                                .then(response => {
+                                    if (!response.ok) {
+                                        console.error('API request failed:', newUrl, response.status);
+                                        throw new Error('API request failed: ' + response.status);
+                                    }
+                                    return response;
+                                });
+                        }
+                        
+                        // For non-dashboard requests, use the original fetch
+                        return originalFetch(url, options);
+                    };
+                    
+                    console.log('Dashboard API direct access fix installed');
+                })();
+            `;
+            
+            // Add this to the document
+            document.head.appendChild(script);
+            console.log('API direct access fix script added to page');
+        });
+    </script>
 </head>
 <body>
     <div class="container">
