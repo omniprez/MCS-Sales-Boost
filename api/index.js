@@ -1119,6 +1119,59 @@ app.get('/api/pipeline', async (req, res) => {
   }
 });
 
+// Debug endpoint to list all registered routes
+app.get('/api/debug/routes', (req, res) => {
+  console.log('Debug routes requested');
+  
+  try {
+    const routes = [];
+    
+    // Get all registered routes
+    app._router.stack.forEach((middleware) => {
+      if (middleware.route) {
+        // Routes registered directly on the app
+        routes.push({
+          path: middleware.route.path,
+          method: Object.keys(middleware.route.methods)[0].toUpperCase()
+        });
+      } else if (middleware.name === 'router') {
+        // Routes added via a router
+        middleware.handle.stack.forEach((handler) => {
+          if (handler.route) {
+            routes.push({
+              path: handler.route.path,
+              method: Object.keys(handler.route.methods)[0].toUpperCase()
+            });
+          }
+        });
+      }
+    });
+    
+    return res.json({
+      routes: routes,
+      count: routes.length,
+      baseUrl: req.protocol + '://' + req.get('host'),
+      nodeEnv: process.env.NODE_ENV || 'not set'
+    });
+  } catch (error) {
+    console.error('Debug routes error:', error);
+    res.status(500).json({ 
+      error: 'Server error',
+      message: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
+});
+
+// Also add a version endpoint to check which version is deployed
+app.get('/api/version', (req, res) => {
+  res.json({
+    version: '1.0.1',
+    deployTimestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'not set'
+  });
+});
+
 // Database test endpoint
 app.get('/api/db-direct-test', async (req, res) => {
   console.log('Database direct test requested');
@@ -1182,10 +1235,34 @@ app.get('/api/env-check', (req, res) => {
 
 // Fallback route
 app.use('*', (req, res) => {
-  console.log('Not found route:', req.originalUrl);
+  console.log(`404 NOT FOUND: ${req.originalUrl}`);
+  
+  // Log all request info for debugging
+  const requestInfo = {
+    url: req.originalUrl,
+    method: req.method,
+    headers: req.headers,
+    query: req.query,
+    params: req.params,
+    body: req.body,
+    path: req.path,
+    timestamp: new Date().toISOString()
+  };
+  
+  console.log('Request info:', JSON.stringify(requestInfo));
+  
   res.status(404).json({
-    error: 'Not found'
+    error: 'Not Found',
+    message: `Could not find ${req.originalUrl}. This URL has been logged for debugging.`,
+    requestedUrl: req.originalUrl,
+    availableApis: ['/api/dashboard', '/api/deals', '/api/auth/login', '/api/debug/routes', '/api/version']
   });
+});
+
+// Start the server
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
 });
 
 // Export for Vercel serverless functions
