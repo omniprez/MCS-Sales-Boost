@@ -1,5 +1,3 @@
-import { z } from 'zod';
-
 // Helper function to determine if we're in production
 const isProduction = () => {
   return window.location.hostname !== 'localhost' && 
@@ -16,12 +14,6 @@ const getApiBaseUrl = () => {
   // Otherwise use the environment variable or default to localhost
   return import.meta.env.VITE_API_URL || 'http://localhost:5000';
 };
-
-const envSchema = z.object({
-  VITE_API_URL: z.string().default('http://localhost:5000'),
-});
-
-const env = envSchema.parse(import.meta.env);
 
 export const API_BASE_URL = getApiBaseUrl();
 

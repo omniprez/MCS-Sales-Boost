@@ -44,30 +44,6 @@ export default function Login() {
     preloadImages();
   }, []);
 
-  // Try direct API connection
-  const testApiConnection = async () => {
-    try {
-      setErrorDetails('Testing API connection...');
-      
-      // Try fetch with a simple endpoint without authentication
-      const response = await fetch('/api/health-check');
-      const data = await response.text();
-      
-      setErrorDetails(prev => prev + '\nHealth check response: ' + data);
-      
-      // Try database connection test
-      try {
-        const dbResponse = await fetch('/api/db-direct-test');
-        const dbData = await dbResponse.text();
-        setErrorDetails(prev => prev + '\nDB test response: ' + dbData);
-      } catch (dbError) {
-        setErrorDetails(prev => prev + '\nDB test error: ' + (dbError instanceof Error ? dbError.message : String(dbError)));
-      }
-    } catch (error) {
-      setErrorDetails(prev => prev + '\nAPI test error: ' + (error instanceof Error ? error.message : String(error)));
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting) return;
@@ -114,9 +90,6 @@ export default function Login() {
       
       // Set error details to show in the UI
       setErrorDetails('Login error: ' + (error instanceof Error ? error.message : String(error)));
-      
-      // Automatically test API connection
-      await testApiConnection();
     } finally {
       setIsSubmitting(false);
     }
@@ -188,7 +161,7 @@ export default function Login() {
             {isSubmitting ? "Signing in..." : "Sign In"}
           </button>
           
-          {/* Error diagnostics section */}
+          {/* Error details section */}
           {errorDetails && (
             <div className="error-details" style={{ 
               marginTop: '20px', 

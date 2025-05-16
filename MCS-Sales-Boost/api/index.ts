@@ -1,4 +1,4 @@
-import { app } from '../server/index';
+// This file acts as a type-safe reference for development
+// It forwards to the CommonJS version that Vercel will use
 
-// Export the Express API for Vercel
-export default app; 
+export * from '../server/index.js'; 

@@ -20,7 +20,7 @@ export async function login(username: string, password: string): Promise<LoginRe
     const apiUrl = `${API_BASE_URL}${API_ENDPOINTS.AUTH.LOGIN}`;
     console.log("Using API URL:", apiUrl);
 
-    // Add timestamp to prevent caching issues in Vercel
+    // Add timestamp to prevent caching issues
     const timestampedUrl = `${apiUrl}?_t=${Date.now()}`;
     
     // Try with simplified request
@@ -39,192 +39,79 @@ export async function login(username: string, password: string): Promise<LoginRe
     let responseText;
     try {
       responseText = await response.text();
-      console.log("Raw response text:", responseText.length > 100 ? 
-                    responseText.substring(0, 100) + '...' : 
-                    responseText);
-
-      // Check if we received HTML instead of JSON (Vercel serverless issue)
-      if (responseText.trim().startsWith('<!DOCTYPE html>') || 
-          responseText.trim().startsWith('<html')) {
-        console.error("Received HTML instead of JSON. API route not found.");
-        
-        // Try alternate approach - direct endpoint
-        try {
-          console.log("Trying direct login endpoint...");
-          const directResponse = await fetch('/api/direct-login-test', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ username, password }),
-          });
-          
-          const directResult = await directResponse.json();
-          console.log("Direct login result:", directResult);
-          
-          if (directResult.success) {
-            // Use the direct login response
-            localStorage.setItem('salesSpark_user', JSON.stringify(directResult.user));
-            return {
-              success: true,
-              user: directResult.user
-            };
-          }
-        } catch (directError) {
-          console.error("Direct login failed:", directError);
-        }
-        
-        return {
-          success: false,
-          message: "API routes not found. Please contact support."
-        };
-      }
-
-      // If the response is empty, return an error
-      if (!responseText || !responseText.trim()) {
-        console.error("Empty response from server");
-        return {
-          success: false,
-          message: "Server returned an empty response"
-        };
-      }
-    } catch (textError) {
-      console.error("Error reading response text:", textError);
+    } catch (error) {
+      console.error("Error reading response text:", error);
       return {
         success: false,
-        message: "Failed to read server response"
+        message: 'Error reading server response'
       };
     }
 
-    // Parse the JSON response
+    if (!responseText || responseText.trim() === '') {
+      console.error("Empty response from server");
+      return {
+        success: false,
+        message: 'Empty response from server'
+      };
+    }
+
+    // Parse JSON response
     let data;
     try {
       data = JSON.parse(responseText);
-      console.log("Login response data:", data);
+      console.log("Response data parsed successfully");
     } catch (jsonError) {
-      console.error("Error parsing JSON response:", jsonError);
-      console.error("Response that failed to parse:", responseText);
-      
-      // Try a direct API call to our debug endpoint
-      try {
-        console.log("Trying direct DB test endpoint...");
-        const dbTestResponse = await fetch(`${API_BASE_URL}/api/db-direct-test`, {
-          method: 'GET'
-        });
-        const dbTestText = await dbTestResponse.text();
-        console.log("DB Test response:", dbTestText);
-      } catch (dbTestError) {
-        console.error("DB Test error:", dbTestError);
-      }
-      
+      console.error("Error parsing JSON:", jsonError, "Response text:", responseText);
       return {
         success: false,
-        message: `Failed to parse server response: ${jsonError instanceof Error ? jsonError.message : 'Invalid JSON'}`
+        message: `Invalid JSON response: ${responseText.substring(0, 100)}...`
       };
     }
 
+    // Handle error responses
     if (!response.ok) {
+      console.error("Login failed with status:", response.status, "Data:", data);
       return {
         success: false,
-        message: data?.error || data?.message || `Login failed with status: ${response.status}`
+        message: data.error || `Server error: ${response.status}`
       };
     }
 
+    // Cache the user in localStorage for faster access
     if (data.success && data.user) {
-      // Create the user object
-      const user = {
-        id: data.user.id,
-        username: data.user.username,
-        name: data.user.name,
-        role: data.user.role || 'sales_rep'
-      };
-
-      // Cache the user in localStorage
-      try {
-        localStorage.setItem('salesSpark_user', JSON.stringify(user));
-        console.log("User cached in localStorage after login");
-      } catch (e) {
-        console.error("Error caching user after login:", e);
-      }
-
-      return {
-        success: true,
-        user
-      };
+      localStorage.setItem('salesSpark_user', JSON.stringify(data.user));
     }
 
-    return {
-      success: false,
-      message: 'Invalid server response'
-    };
-
+    return data;
   } catch (error) {
-    console.error('Login error:', error);
+    console.error("Login error:", error);
     return {
       success: false,
-      message: error instanceof Error
-        ? `Login error: ${error.message}`
-        : 'An error occurred during login'
+      message: error instanceof Error ? error.message : 'Unknown error during login'
     };
   }
 }
 
-export async function logout(): Promise<{ success: boolean; message?: string }> {
+export async function logout(): Promise<{ success: boolean }> {
   try {
-    console.log("Attempting logout");
-
-    // Clear the cached user from localStorage first
-    try {
-      localStorage.removeItem('salesSpark_user');
-      console.log("Cleared cached user from localStorage");
-    } catch (e) {
-      console.error("Error clearing cached user:", e);
-    }
-
-    const apiUrl = `${API_BASE_URL}${API_ENDPOINTS.AUTH.LOGOUT}`;
-    console.log("Using API URL:", apiUrl);
-
-    const response = await fetch(apiUrl, {
+    // Clear cached user
+    localStorage.removeItem('salesSpark_user');
+    
+    // Call the logout endpoint
+    const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.AUTH.LOGOUT}`, {
       method: 'POST',
       credentials: 'include',
-      headers: {
-        'Cache-Control': 'no-cache',
-        'Pragma': 'no-cache'
-      }
     });
-
-    console.log("Logout response status:", response.status);
-
-    // Even if the server request fails, we've already cleared the local cache
-    // so the user will be logged out on the client side
-
-    let data;
-    try {
-      data = await response.json();
-      console.log("Logout response data:", data);
-    } catch (e) {
-      console.error("Error parsing logout response:", e);
-      // Return success anyway since we've cleared the local cache
-      return { success: true };
-    }
-
+    
     if (!response.ok) {
-      // Even though the server request failed, we've cleared the local cache
-      // so we can still consider this a successful logout from the client perspective
-      console.log("Server logout failed, but local logout succeeded");
-      return {
-        success: true,
-        message: "Logged out locally, but server logout failed: " + (data?.error || 'Unknown error')
-      };
+      console.error("Logout failed with status:", response.status);
+      return { success: false };
     }
-
-    return { success: true, message: "Logged out successfully" };
+    
+    return { success: true };
   } catch (error) {
-    console.error('Logout error:', error);
-    return {
-      success: false,
-      message: error instanceof Error ? error.message : 'An error occurred during logout'
-    };
+    console.error("Logout error:", error);
+    return { success: false };
   }
 }
 
@@ -255,118 +142,54 @@ export async function checkAuth(): Promise<User | null> {
     const apiUrl = `${API_BASE_URL}${API_ENDPOINTS.AUTH.CHECK}`;
     console.log("Using API URL:", apiUrl);
 
-    try {
-      const response = await fetch(apiUrl, {
-        method: 'GET',
-        credentials: 'include',
-        headers: {
-          'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache'
-        }
-      });
+    // Add timestamp to prevent caching issues
+    const timestampedUrl = `${apiUrl}?_t=${Date.now()}`;
 
-      console.log("Auth check response status:", response.status);
-
-      // If not authenticated, return null immediately
-      if (response.status === 401) {
-        console.log("Auth check failed: Not authenticated");
-        localStorage.removeItem('salesSpark_user');
-        return null;
+    // Make auth check request
+    const response = await fetch(timestampedUrl, {
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache, no-store, must-revalidate'
       }
+    });
 
-      // For other error statuses, try to use cached user if available
-      if (!response.ok) {
-        console.log("Auth check failed:", response.status);
+    console.log("Auth check response status:", response.status);
 
-        // If we have a cached user, use it as a fallback
-        if (parsedCachedUser) {
-          console.log("Using cached user due to API error");
-          return parsedCachedUser;
-        }
-
-        return null;
-      }
-
-      let data;
-      try {
-        const text = await response.text();
-        console.log("Raw response text:", text);
-
-        // If empty response, return cached user or null
-        if (!text.trim()) {
-          console.log("Empty response from server");
-          return parsedCachedUser;
-        }
-
-        data = JSON.parse(text);
-      } catch (parseError) {
-        console.error("Failed to parse auth check response:", parseError);
-        // Return cached user if available
-        return parsedCachedUser;
-      }
-
-      // Validate the response data structure
-      if (!data || typeof data !== 'object') {
-        console.log("Invalid response data structure");
-        return parsedCachedUser;
-      }
-
-      // Check if the user is authenticated and has user data
-      if (data.isAuthenticated && data.user && typeof data.user === 'object') {
-        const { id, username, name, role } = data.user;
-
-        // Validate required user fields
-        if (!id || !username || !name) {
-          console.log("Missing required user fields");
-          return parsedCachedUser;
-        }
-
-        console.log("User authenticated:", data.user);
-
-        // Create the user object
-        const user = {
-          id,
-          username,
-          name,
-          role: role || 'sales_rep'
-        };
-
-        // Cache the user in localStorage
-        try {
-          localStorage.setItem('salesSpark_user', JSON.stringify(user));
-          console.log("User cached in localStorage");
-        } catch (e) {
-          console.error("Error caching user:", e);
-        }
-
-        return user;
-      }
-
-      console.log("User not authenticated or invalid user data");
-      return parsedCachedUser;
-    } catch (fetchError) {
-      console.error("Fetch error during auth check:", fetchError);
-      // Return cached user if available
-      return parsedCachedUser;
+    if (!response.ok) {
+      console.log("Auth check failed, clearing cached user");
+      localStorage.removeItem('salesSpark_user');
+      return null;
     }
+
+    // Parse response
+    let data;
+    try {
+      const responseText = await response.text();
+      if (!responseText || responseText.trim() === '') {
+        console.error("Empty response from auth check");
+        return null;
+      }
+      data = JSON.parse(responseText);
+    } catch (error) {
+      console.error("Error parsing auth check response:", error);
+      return null;
+    }
+
+    if (!data.isAuthenticated || !data.user) {
+      console.log("User not authenticated according to server");
+      localStorage.removeItem('salesSpark_user');
+      return null;
+    }
+
+    console.log("User authenticated:", data.user);
+    
+    // Update cached user
+    localStorage.setItem('salesSpark_user', JSON.stringify(data.user));
+    
+    return data.user;
   } catch (error) {
-    console.error('Auth check error:', error);
-
-    // Try to get cached user as a last resort
-    try {
-      const cachedUser = localStorage.getItem('salesSpark_user');
-      if (cachedUser) {
-        const user = JSON.parse(cachedUser);
-        if (user && user.id && user.username && user.name) {
-          console.log("Using cached user as last resort");
-          return user;
-        }
-      }
-    } catch (e) {
-      console.error("Error parsing cached user as last resort:", e);
-    }
-
+    console.error("Auth check error:", error);
     return null;
   }
 }

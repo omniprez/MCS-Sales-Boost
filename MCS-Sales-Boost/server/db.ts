@@ -1,6 +1,9 @@
+// @ts-ignore
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
-import * as schema from '../shared/schema';
+// @ts-ignore
+import * as schema from '../shared/schema.js';
+// @ts-ignore
 import dotenv from 'dotenv';
 
 // Load environment variables
@@ -9,6 +12,7 @@ dotenv.config();
 // Determine if we're in production (Vercel deployment)
 const isProduction = process.env.NODE_ENV === 'production';
 
+// Create connection pool with optimized settings
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL || 'postgresql://postgres:Postgres2025!@localhost:5432/salesspark',
   max: 20, // Maximum number of clients in the pool
@@ -19,7 +23,7 @@ const pool = new Pool({
   ssl: isProduction ? { rejectUnauthorized: false } : false
 });
 
-pool.on('error', (err, client) => {
+pool.on('error', (err: Error) => {
   console.error('Unexpected error on idle client', err);
 });
 
@@ -42,7 +46,7 @@ process.on('SIGTERM', async () => {
 });
 
 // Test database connection
-export async function testConnection() {
+export async function testConnection(): Promise<boolean> {
   try {
     // For in-memory storage, just return true
     if (process.env.USE_IN_MEMORY_DB === 'true') {
@@ -71,16 +75,6 @@ export async function testConnection() {
         // Get PostgreSQL version
         const versionResult = await client.query('SELECT version();');
         console.log('PostgreSQL version:', versionResult.rows[0].version);
-
-        // Check if tables exist
-        const tablesResult = await client.query(`
-          SELECT table_name 
-          FROM information_schema.tables 
-          WHERE table_schema='public'
-          ORDER BY table_name;
-        `);
-
-        console.log('Available tables:', tablesResult.rows.map(row => row.table_name));
 
         return true;
       } finally {

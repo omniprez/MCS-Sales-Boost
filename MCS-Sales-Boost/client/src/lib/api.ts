@@ -1,5 +1,3 @@
-import { apiInterceptor, shouldUseMockApi } from './api-mock';
-
 // Base API URL
 const API_BASE_URL = '/api';
 
@@ -14,10 +12,7 @@ async function fetchApi<T>(
   const url = buildUrl(endpoint);
   
   try {
-    // Use the API interceptor which will use mock data if needed
-    const response = shouldUseMockApi() 
-      ? await apiInterceptor(url, options)
-      : await fetch(url, options);
+    const response = await fetch(url, options);
     
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
@@ -62,19 +57,19 @@ export const dealsApi = {
     return fetchApi<any>(`deals/${id}`);
   },
   
-  create: async (deal: any) => {
+  create: async (data: any) => {
     return fetchApi<any>('deals', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(deal),
+      body: JSON.stringify(data),
     });
   },
   
-  update: async (id: number, deal: any) => {
+  update: async (id: number, data: any) => {
     return fetchApi<any>(`deals/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(deal),
+      body: JSON.stringify(data),
     });
   },
   
