@@ -29,7 +29,7 @@ export async function login(username: string, password: string): Promise<LoginRe
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ email: username, password }),
       credentials: 'include',
     });
 
