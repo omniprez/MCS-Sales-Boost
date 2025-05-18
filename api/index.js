@@ -78,7 +78,7 @@ module.exports = async (req, res) => {
   // Handle the request based on the endpoint
   switch (endpoint) {
     case 'health-check':
-      return res.json({ 
+      return res.json({
         status: 'ok', 
         env: process.env.NODE_ENV || 'development',
         timestamp: new Date().toISOString()
@@ -93,53 +93,53 @@ module.exports = async (req, res) => {
       
     case 'pipeline':
       // Handle the pipeline API request
-      try {
-        const pool = await connectToDatabase();
-        if (!pool) {
-          return res.status(500).json({ error: 'Database connection failed' });
-        }
-        
-        const client = await pool.connect();
-        try {
-          const result = await client.query(`
-            SELECT 
-              stage, 
-              COUNT(*) as deal_count, 
-              SUM(amount) as total_amount
-            FROM deals
-            WHERE stage NOT IN ('closed_won', 'closed_lost')
-            GROUP BY stage
-            ORDER BY CASE 
-              WHEN stage = 'prospecting' THEN 1
-              WHEN stage = 'qualification' THEN 2
-              WHEN stage = 'proposal' THEN 3
-              WHEN stage = 'negotiation' THEN 4
-              ELSE 5
-            END
-          `);
-          
-          const totalResult = await client.query(`
-            SELECT SUM(amount) as total
-            FROM deals
-            WHERE stage NOT IN ('closed_won', 'closed_lost')
-          `);
-          
-          return res.json({
-            stages: result.rows,
-            total: totalResult.rows[0]?.total || 0
-          });
-        } finally {
-          client.release();
-        }
-      } catch (error) {
-        console.error('API Error (pipeline):', error);
+  try {
+    const pool = await connectToDatabase();
+    if (!pool) {
+      return res.status(500).json({ error: 'Database connection failed' });
+    }
+    
+    const client = await pool.connect();
+    try {
+      const result = await client.query(`
+        SELECT 
+          stage, 
+          COUNT(*) as deal_count, 
+          SUM(amount) as total_amount
+        FROM deals
+        WHERE stage NOT IN ('closed_won', 'closed_lost')
+        GROUP BY stage
+        ORDER BY CASE 
+          WHEN stage = 'prospecting' THEN 1
+          WHEN stage = 'qualification' THEN 2
+          WHEN stage = 'proposal' THEN 3
+          WHEN stage = 'negotiation' THEN 4
+          ELSE 5
+        END
+      `);
+      
+      const totalResult = await client.query(`
+        SELECT SUM(amount) as total
+        FROM deals
+        WHERE stage NOT IN ('closed_won', 'closed_lost')
+      `);
+      
+      return res.json({
+        stages: result.rows,
+        total: totalResult.rows[0]?.total || 0
+      });
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    console.error('API Error (pipeline):', error);
         return res.status(500).json({ error: 'Server error', details: error.message });
       }
       
     case '':
     case undefined:
       // Root API endpoint
-      return res.json({
+        return res.json({
         name: 'MCS Sales Boost API',
         version: '1.1.0',
         environment: process.env.NODE_ENV || 'development',
@@ -174,11 +174,11 @@ module.exports = async (req, res) => {
     default:
       // Handle 404 for unknown endpoints
       return res.status(404).json({ 
-        error: 'Not found',
+    error: 'Not found',
         endpoint: endpoint || '/',
         url: fullPath,
-        method: req.method,
-        timestamp: new Date().toISOString()
-      });
+    method: req.method,
+    timestamp: new Date().toISOString()
+  });
   }
-};
+}; 
