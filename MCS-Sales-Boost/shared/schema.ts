@@ -10,7 +10,7 @@ import {
   jsonb
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
-import { z } from "zod";
+import * as z from "zod";
 
 // User Schema
 export const users = pgTable("users", {
@@ -51,6 +51,19 @@ export interface NewDeal {
   value?: number;
   status: string;
   userId?: number;
+  name?: string;
+  mrc?: number;
+  nrc?: number;
+  tcv?: number;
+  contractLength?: number;
+  contract_length?: number;
+  category?: string;
+  clientType?: string;
+  dealType?: string;
+  stage?: string;
+  creationDate?: string | Date;
+  customerId?: number;
+  customerName?: string;
 }
 
 export const deals = pgTable("deals", {
@@ -60,6 +73,19 @@ export const deals = pgTable("deals", {
   status: varchar("status").notNull(),
   user_id: integer("user_id")
     .references(() => users.id),
+  stage: varchar("stage"),
+  name: varchar("name"),
+  mrc: doublePrecision("mrc"),
+  nrc: doublePrecision("nrc"),
+  tcv: doublePrecision("tcv"),
+  contractLength: integer("contract_length"),
+  contract_length: integer("contract_length_alt"),
+  category: varchar("category"),
+  clientType: varchar("client_type"),
+  dealType: varchar("deal_type"),
+  customerId: integer("customer_id"),
+  customerName: varchar("customer_name"),
+  closedDate: timestamp("closed_date"),
   created_at: timestamp("created_at").defaultNow(),
   updated_at: timestamp("updated_at").defaultNow()
 });
@@ -76,6 +102,19 @@ export const dealSchema = z.object({
   value: z.number().optional(),
   status: z.string(),
   userId: z.number().optional(),
+  stage: z.string().optional(),
+  name: z.string().optional(),
+  mrc: z.number().optional(),
+  nrc: z.number().optional(),
+  tcv: z.number().optional(),
+  contractLength: z.number().optional(),
+  contract_length: z.number().optional(),
+  category: z.string().optional(),
+  clientType: z.string().optional(),
+  dealType: z.string().optional(),
+  customerId: z.number().optional(),
+  customerName: z.string().optional(),
+  closedDate: z.date().optional(),
   createdAt: z.date().optional(),
   updatedAt: z.date().optional()
 });

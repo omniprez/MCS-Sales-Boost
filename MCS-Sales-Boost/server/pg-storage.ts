@@ -7,28 +7,31 @@ import { Pool } from 'pg';
 import type {
   User,
   Deal,
-  NewDeal,
   Team,
   Customer,
-  Product,
-  Achievement,
-  Activity,
-  InsertActivity,
   Target,
-  InsertTarget,
+  Activity,
+  Achievement,
+  Product,
   Reward,
-  InsertReward,
   UserReward,
-  InsertUserReward,
   PointTransaction,
-  InsertPointTransaction,
   Challenge,
-  InsertChallenge,
   ChallengeParticipant,
-  InsertChallengeParticipant,
   InsertUser,
+  InsertTeam,
+  InsertDeal,
+  InsertCustomer,
   InsertProduct,
-  InsertCustomer
+  InsertAchievement,
+  InsertActivity,
+  InsertTarget,
+  InsertReward,
+  InsertUserReward,
+  InsertPointTransaction,
+  InsertChallenge,
+  InsertChallengeParticipant,
+  NewDeal
 } from '../shared/types';
 
 export class PgStorage implements IStorage {
@@ -149,15 +152,28 @@ export class PgStorage implements IStorage {
         }
       });
 
+      // Return a complete Deal object with all required fields
       return {
         id: deal.id,
+        name: dealData.title, // Using title as name
         title: dealData.title,
         value: dealData.value || 0,
         status: dealData.status.toLowerCase(),
-        userId: dealData.userId,
-        createdAt: now,
-        updatedAt: now
-      };
+        user_id: deal.user_id,
+        stage: dealData.stage || 'prospecting', // Default stage
+        mrc: dealData.mrc || 0,
+        nrc: dealData.nrc || 0,
+        tcv: dealData.tcv || 0,
+        contractLength: dealData.contractLength || 12,
+        contract_length: dealData.contract_length || 12,
+        category: dealData.category || 'unknown',
+        clientType: dealData.clientType || 'B2B',
+        dealType: dealData.dealType || 'new',
+        customerId: dealData.customerId || null,
+        customerName: dealData.customerName || null,
+        created_at: now,
+        updated_at: now
+      } as Deal;
     } catch (error) {
       console.error('Error in storage.createDeal:', error);
       throw error;
@@ -183,7 +199,7 @@ export class PgStorage implements IStorage {
         title: deal.title,
         value: deal.value || 0,
         status: deal.status,
-        userId: deal.user_id || 0,
+        user_id: deal.user_id || 0,
         createdAt: deal.created_at || new Date(),
         updatedAt: deal.updated_at || new Date()
       }));
@@ -199,13 +215,25 @@ export class PgStorage implements IStorage {
         .where(eq(schema.deals.user_id, userId));
       return deals.map(deal => ({
         id: deal.id,
+        name: deal.name || deal.title,
         title: deal.title,
         value: deal.value || 0,
         status: deal.status,
-        userId: deal.user_id,
-        createdAt: deal.created_at,
-        updatedAt: deal.updated_at
-      }));
+        user_id: deal.user_id,
+        stage: deal.stage || 'unknown',
+        mrc: deal.mrc || 0,
+        nrc: deal.nrc || 0,
+        tcv: deal.tcv || 0,
+        contractLength: deal.contractLength || 12,
+        contract_length: deal.contract_length || 12,
+        category: deal.category || 'unknown',
+        clientType: deal.clientType || 'B2B',
+        dealType: deal.dealType || 'new',
+        customerId: deal.customerId || null,
+        customerName: deal.customerName || null,
+        created_at: deal.created_at,
+        updated_at: deal.updated_at
+      } as Deal));
     } catch (error) {
       console.error('Error fetching deals by user:', error);
       return [];
@@ -217,13 +245,25 @@ export class PgStorage implements IStorage {
       const deals = await db.select().from(schema.deals).where(eq(schema.deals.status, status));
       return deals.map(deal => ({
         id: deal.id,
+        name: deal.name || deal.title,
         title: deal.title,
         value: deal.value || 0,
         status: deal.status,
-        userId: deal.user_id,
-        createdAt: deal.created_at,
-        updatedAt: deal.updated_at
-      }));
+        user_id: deal.user_id,
+        stage: deal.stage || 'unknown',
+        mrc: deal.mrc || 0,
+        nrc: deal.nrc || 0,
+        tcv: deal.tcv || 0,
+        contractLength: deal.contractLength || 12,
+        contract_length: deal.contract_length || 12,
+        category: deal.category || 'unknown',
+        clientType: deal.clientType || 'B2B',
+        dealType: deal.dealType || 'new',
+        customerId: deal.customerId || null,
+        customerName: deal.customerName || null,
+        created_at: deal.created_at,
+        updated_at: deal.updated_at
+      } as Deal));
     } catch (error) {
       console.error('Error fetching deals by status:', error);
       return [];
@@ -232,12 +272,13 @@ export class PgStorage implements IStorage {
 
   async updateDeal(id: number, deal: Partial<Deal>): Promise<Deal | undefined> {
     const now = new Date();
+    
     // Convert camelCase to snake_case for database fields
-    const dbDeal = {
+    const dbDeal: any = {
       title: deal.title,
       value: deal.value,
       status: deal.status,
-      user_id: deal.userId,
+      user_id: deal.user_id,
       updated_at: now
     };
 
@@ -251,15 +292,28 @@ export class PgStorage implements IStorage {
 
     if (result.length === 0) return undefined;
 
+    // Return a complete Deal object with all required fields
     return {
       id: result[0].id,
+      name: result[0].name || result[0].title,
       title: result[0].title,
       value: result[0].value || 0,
       status: result[0].status,
-      userId: result[0].user_id,
-      createdAt: result[0].created_at,
-      updatedAt: result[0].updated_at
-    };
+      user_id: result[0].user_id,
+      stage: result[0].stage || 'unknown',
+      mrc: result[0].mrc || 0,
+      nrc: result[0].nrc || 0,
+      tcv: result[0].tcv || 0,
+      contractLength: result[0].contractLength || 12,
+      contract_length: result[0].contract_length || 12,
+      category: result[0].category || 'unknown',
+      clientType: result[0].clientType || 'B2B',
+      dealType: result[0].dealType || 'new',
+      customerId: result[0].customerId || null,
+      customerName: result[0].customerName || null,
+      created_at: result[0].created_at,
+      updated_at: result[0].updated_at
+    } as Deal;
   }
 
   async updateDealStage(id: number, status: string): Promise<Deal | undefined> {
@@ -274,15 +328,28 @@ export class PgStorage implements IStorage {
 
     if (result.length === 0) return undefined;
 
+    // Return a complete Deal object with all required fields
     return {
       id: result[0].id,
+      name: result[0].name || result[0].title,
       title: result[0].title,
       value: result[0].value || 0,
       status: result[0].status,
-      userId: result[0].user_id,
-      createdAt: result[0].created_at,
-      updatedAt: result[0].updated_at
-    };
+      user_id: result[0].user_id,
+      stage: result[0].stage || 'unknown',
+      mrc: result[0].mrc || 0,
+      nrc: result[0].nrc || 0,
+      tcv: result[0].tcv || 0,
+      contractLength: result[0].contractLength || 12,
+      contract_length: result[0].contract_length || 12,
+      category: result[0].category || 'unknown',
+      clientType: result[0].clientType || 'B2B',
+      dealType: result[0].dealType || 'new',
+      customerId: result[0].customerId || null,
+      customerName: result[0].customerName || null,
+      created_at: result[0].created_at,
+      updated_at: result[0].updated_at
+    } as Deal;
   }
 
   async deleteDeal(id: number): Promise<boolean> {
@@ -567,7 +634,7 @@ export class PgStorage implements IStorage {
     }));
   }
 
-  async awardAchievement(userAchievement: InsertUserAchievement): Promise<UserAchievement> {
+  async awardAchievement(userAchievement: any): Promise<any> {
     const result = await db.insert(schema.userAchievements).values(userAchievement).returning();
     return result[0];
   }
@@ -623,7 +690,7 @@ export class PgStorage implements IStorage {
     let deals: any[] = [];
 
     if (userId) {
-      deals = await db.select().from(schema.deals).where(eq(schema.deals.userId, userId));
+      deals = await db.select().from(schema.deals).where(eq(schema.deals.user_id, userId));
     } else {
       deals = await db.select().from(schema.deals);
     }
@@ -967,5 +1034,60 @@ export class PgStorage implements IStorage {
       .where(eq(schema.customers.name, name))
       .limit(1);
     return customers[0];
+  }
+
+  // Fix issues in the getTargetById method
+  async getTargetById(id: number): Promise<Target | undefined> {
+    try {
+      const result = await db
+        .select()
+        .from(schema.targets)
+        .where(eq(schema.targets.id, id))
+        .limit(1);
+        
+      return result.length > 0 ? result[0] : undefined;
+    } catch (error) {
+      console.error('Error in getTargetById:', error);
+      return undefined;
+    }
+  }
+
+  // Fix issues in the deleteTarget method
+  async deleteTarget(id: number): Promise<boolean> {
+    try {
+      const result = await db
+        .delete(schema.targets)
+        .where(eq(schema.targets.id, id));
+        
+      return true;
+    } catch (error) {
+      console.error('Error in deleteTarget:', error);
+      return false;
+    }
+  }
+
+  // Fix issues in the deleteCustomer method
+  async deleteCustomer(id: number): Promise<boolean> {
+    try {
+      // First, delete any deals associated with this customer
+      await db
+        .delete(schema.deals)
+        .where(eq(schema.deals.customerId, id));
+        
+      // Then delete the customer
+      const result = await db
+        .delete(schema.customers)
+        .where(eq(schema.customers.id, id));
+        
+      return true;
+    } catch (error) {
+      console.error('Error in deleteCustomer:', error);
+      return false;
+    }
+  }
+
+  // Add missing getCustomerById method
+  async getCustomerById(id: number): Promise<Customer | undefined> {
+    return this.getCustomer(id);
   }
 }

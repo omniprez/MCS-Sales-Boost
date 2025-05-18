@@ -1,45 +1,29 @@
-// Simple API proxy to forward requests to our main API
+// Import required modules
 const express = require('express');
-const cors = require('cors');
 const { createProxyMiddleware } = require('http-proxy-middleware');
+const path = require('path');
 
+// Create express app
 const app = express();
 
-// CORS middleware
-app.use(cors());
-
-// Logging middleware
-app.use((req, res, next) => {
-  console.log(`API-PROXY: ${req.method} ${req.url}`);
-  next();
-});
-
-// Create the API proxy with specific paths
-const apiProxy = createProxyMiddleware({
-  target: 'http://localhost:3000',
+// Proxy API requests
+app.use('/api', createProxyMiddleware({
+  target: 'http://localhost:5000',
   changeOrigin: true,
-  pathRewrite: {
-    '^/api': '/api'
-  },
-  onProxyReq: (proxyReq, req, res) => {
-    console.log(`Proxying ${req.method} ${req.url} -> ${proxyReq.path}`);
-  }
+}));
+
+// Serve static files from client dist
+app.use(express.static(path.join(__dirname, 'MCS-Sales-Boost/client/dist')));
+
+// All other requests go to index.html
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'MCS-Sales-Boost/client/dist/index.html'));
 });
 
-// Apply proxy to all /api routes
-app.use('/api', apiProxy);
-
-// Fallback route
-app.use('*', (req, res) => {
-  res.status(404).json({
-    error: 'Not found',
-    message: 'API proxy endpoint not found',
-    path: req.originalUrl
-  });
-});
-
-// Start the server
-const PORT = process.env.PORT || 8080;
+// Start server
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`API proxy server running on port ${PORT}`);
+  console.log(`Proxy server running on port ${PORT}`);
+  console.log(`API forwarded to localhost:5000`);
+  console.log(`Client served from MCS-Sales-Boost/client/dist`);
 }); 

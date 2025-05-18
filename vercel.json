@@ -1,16 +1,39 @@
 {
   "version": 2,
   "builds": [
-    { "src": "public/**", "use": "@vercel/static" },
-    { "src": "api/*.js", "use": "@vercel/node" }
+    {
+      "src": "MCS-Sales-Boost/client/dist/**",
+      "use": "@vercel/static"
+    },
+    {
+      "src": "api/*.js",
+      "use": "@vercel/node"
+    }
   ],
   "routes": [
-    { "src": "/api/auth/login", "dest": "/api/auth-api.js" },
-    { "src": "/api/auth/logout", "dest": "/api/auth-api.js" },
-    { "src": "/api/auth/check", "dest": "/api/auth-api.js" },
-    { "src": "/api/(.*)", "dest": "/api/$1.js" },
-    { "src": "/(.*)", "dest": "/public/$1" },
-    { "handle": "filesystem" },
-    { "src": "/(.*)", "dest": "/public/index.html" }
+    {
+      "src": "/api/auth/login",
+      "dest": "/api/auth-api.js"
+    },
+    {
+      "src": "/api/auth/logout",
+      "dest": "/api/auth-api.js"
+    },
+    {
+      "src": "/api/auth/check",
+      "dest": "/api/auth-api.js"
+    },
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/$1.js"
+    },
+    {
+      "src": "/(.*\\.(js|css|png|jpg|jpeg|gif|ico|json|svg|woff|woff2|ttf|eot))",
+      "dest": "/MCS-Sales-Boost/client/dist/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/MCS-Sales-Boost/client/dist/index.html"
+    }
   ]
-} 
+}
