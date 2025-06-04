@@ -3,9 +3,10 @@
   "version": "1.0.0",
   "description": "MCS Sales Boost App",
   "scripts": {
-    "build": "echo 'No build step required for API-only application'",
+    "build": "cd MCS-Sales-Boost/client && npm install && npm run build && mkdir -p ../../public && cp -r dist/* ../../public/",
     "start": "node api-proxy.js",
-    "proxy": "node api-proxy.js"
+    "proxy": "node api-proxy.js",
+    "dev": "cd MCS-Sales-Boost/client && npm run dev"
   },
   "dependencies": {
     "cors": "^2.8.5",
