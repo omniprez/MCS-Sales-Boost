@@ -4,7 +4,7 @@
   "description": "MCS Sales Boost App",
   "scripts": {
     "build": "echo 'No build step required for API-only application'",
-    "start": "node api/index.js",
+    "start": "node api-proxy.js",
     "proxy": "node api-proxy.js"
   },
   "dependencies": {
