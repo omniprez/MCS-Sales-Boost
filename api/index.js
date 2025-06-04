@@ -3,7 +3,6 @@ const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
 const session = require('express-session');
-const bcrypt = require('bcrypt');
 const dotenv = require('dotenv');
 
 // Add import for session store
@@ -181,4 +180,4 @@ module.exports = async (req, res) => {
     timestamp: new Date().toISOString()
   });
   }
-}; 
+};
