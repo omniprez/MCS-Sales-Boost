@@ -1,5 +1,5 @@
 // Import required modules
-const { Pool } = require('pg');
+const express = require('express');
 const dotenv = require('dotenv');
 
 // Load environment variables
@@ -163,4 +163,4 @@ module.exports = async (req, res) => {
       { path: '/api/auth/logout', method: 'POST', description: 'Logout current user' }
     ]
   });
-}; 
+};
