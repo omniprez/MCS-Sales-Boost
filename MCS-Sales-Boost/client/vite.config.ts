@@ -10,7 +10,7 @@ export default defineConfig({
     strictPort: true, // Don't try other ports if 5174 is in use
     proxy: {
       '/api': {
-        target: 'http://localhost:5001',
+        target: 'http://localhost:5000',
         changeOrigin: true,
         secure: false,
       },
@@ -21,4 +21,4 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
-}); 
+});
