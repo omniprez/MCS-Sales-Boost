@@ -34,7 +34,14 @@
                 ok: true,
                 json: () => {
                   if (url.includes('revenue-summary')) {
-                    return Promise.resolve({ total: 1250000 });
+                    return Promise.resolve({ total: 1250000, trend: [
+                      { month: '2023-06', total: 320000 },
+                      { month: '2023-05', total: 290000 },
+                      { month: '2023-04', total: 310000 },
+                      { month: '2023-03', total: 280000 },
+                      { month: '2023-02', total: 245000 },
+                      { month: '2023-01', total: 210000 }
+                    ]});
                   } else if (url.includes('pipeline-summary')) {
                     return Promise.resolve({ total: 3500000 });
                   } else if (url.includes('sales-leader')) {

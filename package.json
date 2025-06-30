@@ -6,8 +6,8 @@
     "build": "cd MCS-Sales-Boost/client && npm install && npm run build && mkdir -p ../../public && cp -r dist/* ../../public/",
     "start": "node api-proxy.js",
     "proxy": "node api-proxy.js",
-    "dev": "concurrently \"npm run proxy\" \"cd MCS-Sales-Boost/client && npm install && npm run dev\"",
-    "dev:frontend": "cd MCS-Sales-Boost/client && npm install && npm run dev",
+    "dev": "concurrently \"npm run proxy\" \"cd MCS-Sales-Boost/client && npm run dev\"",
+    "dev:frontend": "cd MCS-Sales-Boost/client && npm run dev",
     "dev:backend": "node api-proxy.js"
   },
   "dependencies": {
