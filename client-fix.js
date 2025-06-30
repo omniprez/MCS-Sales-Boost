@@ -175,4 +175,4 @@
   };
   
   console.log('Dashboard API fix installed');
-})(); 
+})();
